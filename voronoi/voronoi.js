@@ -88,9 +88,10 @@ var gl;
         vTexture.image = new Image();
         vTexture.image.onload = function () {
             handleLoadedTexture(vTexture)
+			console.log("texture loaded: " + vTexture.image.src)
         }
 
-        vTexture.image.src = "flower.jpg";
+        vTexture.image.src = "flower.png";
     }
 
     var squareVertexPositionBuffer;
