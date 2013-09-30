@@ -90,7 +90,7 @@ var gl;
             handleLoadedTexture(vTexture)
         }
 
-        vTexture.image.src = "flower.bmp";
+        vTexture.image.src = "flower.jpg";
     }
 
     var squareVertexPositionBuffer;
