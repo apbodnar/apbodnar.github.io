@@ -30,7 +30,7 @@ function getShader(gl, id) {
     var shader;
     if (shaderScript.type == "x-shader/x-fragment") {
         shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderScript.type == "x-shader/x-vertex"wa) {
+    } else if (shaderScript.type == "x-shader/x-vertex") {
         shader = gl.createShader(gl.VERTEX_SHADER);
     } else {
         return null;
@@ -152,7 +152,7 @@ function drawScene() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.uniform1i(shaderProgram.samplerUniform,0);
-    
+
 	gl.uniform1f(shaderProgram.tickUniform, elapsed/10.0);
 	gl.uniform1i(shaderProgram.countUniform, num_triangles);
 	
