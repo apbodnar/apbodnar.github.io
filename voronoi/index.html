@@ -80,7 +80,7 @@
   void main(void) {
     float PI = 3.14159265358979323846264;
     float L = length(aVertexTrans);
-    vec4 rTrans = aVertexTrans * rZ(cos(2000.0*L)*tick/300.0/L/L);
+    vec4 rTrans = vec4(aVertexTrans,0,0) * rZ(cos(2000.0*L)*tick/300.0/L/L);
     vec3 grad = (gradient(rTrans.xy));
     mat4 r = netR(grad);
     vec4 vTrans = vec4(rTrans.xy,-parabolZ(rTrans.xy),0);
