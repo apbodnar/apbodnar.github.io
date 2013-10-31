@@ -167,7 +167,7 @@ function tick() {
 
 function webGLStart() {
 	num_triangles = parseInt(document.getElementById('sites').value);
-    var canvas = document.getElementById("LICcanvas");
+    var canvas = document.getElementById("voronoi_canvas");
     initGL(canvas);
     initShaders();
     initBuffers();
