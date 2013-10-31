@@ -10,87 +10,86 @@
 
 <script id="shader-fs" type="x-shader/x-fragment">
     precision highp float;
-	
-	uniform float tick; 
-	uniform sampler2D uSampler;	
-	
-	varying vec4 tcoord;
-	varying vec4 rc;
-	
+  
+  uniform float tick; 
+  uniform sampler2D uSampler; 
+  
+  varying vec4 tcoord;
+  varying vec4 rc;
+  
     void main(void) {
-		//gl_FragColor = vec4(abs(color),1);
-		gl_FragColor = texture2D(uSampler, tcoord.xy/2.0 - vec2(0.5, 0.5));
-		//gl_FragColor = rc;
+    //gl_FragColor = vec4(abs(color),1);
+    gl_FragColor = texture2D(uSampler, tcoord.xy/2.0 - vec2(0.5, 0.5));
+    //gl_FragColor = rc;
     }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
     precision highp float;
-	attribute vec3 aVertexPosition;
-	attribute vec4 aVertexTrans;
-	
-	varying vec4 tcoord;
-	varying vec4 rc;
-	
-	uniform float tick;
-	uniform int count;
-	float zscale = 2.0;
-	//eye-ballin' it
-	float parabolZ(vec2 p){
-		return ((p.x*p.x)+(p.y*p.y))/zscale;
-	}
-	
-	vec3 gradient(vec2 p){
-		//return vec3(2.0*p.x,2.0*p.y,1.0/parabolZ(p))/3.0;
-		return vec3(2.0*p.x/zscale,2.0*p.y/zscale,1.0);
-	}
-	
-	float getAngle(vec3 a){
-		vec3 b = vec3(0.0,0.0,1.0);
-		return atan(length(cross(a,b)),a.z);
-	}
-	
-	float rand(vec2 co){
-		return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-	}
-	
-	mat4 rZ(float a) {
-		float c = cos(a);
-		float s = sin(a);
-		return	mat4(c,		-s,		0.0,	0.0,
-					s,		c,		0.0,	0.0,
-					0.0,	0.0,	1.0,	0.0,
-					0.0,	0.0,	0.0,	1.0);
-	}
-	
-	mat4 rotationMatrix(vec3 axis, float angle){ //arbitrary axis rotation courtesy neil mendoza
-		axis = normalize(axis);
-		float s = sin(angle);
-		float c = cos(angle);
-		float oc = 1.0 - c;
-		return mat4(oc * axis.x * axis.x + c,     oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-					oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-					oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-					0.0,                                0.0,                                0.0,                                1.0);
-	}
-	
-	mat4 netR(vec3 t){
-		vec3 axis = cross(vec3(0,0,1),t);
-		float a = getAngle(t);
-		return rotationMatrix(axis, a);
-	}
-	
-    void main(void) {
-		float PI = 3.14159265358979323846264;
-		float L = length(aVertexTrans);
-		rc = (vec4(rand(aVertexTrans.xy),rand(aVertexTrans.xy+1.0),rand(aVertexTrans.xy-1.0),1));
-		vec4 rTrans = aVertexTrans * rZ(cos(2000.0*L)*tick/300.0/L/L);
-		vec3 grad = (gradient(rTrans.xy));
-		mat4 r = netR(grad);
-		vec4 vTrans = vec4(rTrans.xy,-parabolZ(rTrans.xy),0);
-		tcoord = vTrans;
+  attribute vec3 aVertexPosition;
+  attribute vec4 aVertexTrans;
+  
+  varying vec4 tcoord;
+  varying vec4 rc;
+  
+  uniform float tick;
+  uniform int count;
+  float zscale = 2.0;
+  //eye-ballin' it
+  float parabolZ(vec2 p){
+    return ((p.x*p.x)+(p.y*p.y))/zscale;
+  }
+  
+  vec3 gradient(vec2 p){
+    //return vec3(2.0*p.x,2.0*p.y,1.0/parabolZ(p))/3.0;
+    return vec3(2.0*p.x/zscale,2.0*p.y/zscale,1.0);
+  }
+  
+  float getAngle(vec3 a){
+    vec3 b = vec3(0.0,0.0,1.0);
+    return atan(length(cross(a,b)),a.z);
+  }
+  
+  mat4 rZ(float a) {
+    float c = cos(a);
+    float s = sin(a);
+    return  mat4(
+      c,    -s,   0.0,  0.0,
+      s,    c,    0.0,  0.0,
+      0.0,  0.0,  1.0,  0.0,
+      0.0,  0.0,  0.0,  1.0
+    );
+  }
+  
+  mat4 rotationMatrix(vec3 axis, float angle){ //arbitrary axis rotation courtesy neil mendoza
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    return mat4(
+        oc * axis.x * axis.x + c         ,  oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+        oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+        oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+        0.0,                                0.0,                                0.0,                                1.0
+      );
+  }
+  
+  mat4 netR(vec3 t){
+    vec3 axis = cross(vec3(0,0,1),t);
+    float a = getAngle(t);
+    return rotationMatrix(axis, a);
+  }
+  
+  void main(void) {
+    float PI = 3.14159265358979323846264;
+    float L = length(aVertexTrans);
+    vec4 rTrans = aVertexTrans * rZ(cos(2000.0*L)*tick/300.0/L/L);
+    vec3 grad = (gradient(rTrans.xy));
+    mat4 r = netR(grad);
+    vec4 vTrans = vec4(rTrans.xy,-parabolZ(rTrans.xy),0);
+    tcoord = vTrans;
         gl_Position = vec4((vec4(15.0/sqrt(float(count))*aVertexPosition, 0.0) * r + vTrans).xyz,1.0) + vec4(0,0,0.0,0);
-    }
+  }
 </script>
 
 <script src="voronoi.js" type="text/javascript"></script>
@@ -98,10 +97,10 @@
 
 
 <body>
-	<form>
-		Number of sites: <input type="text" id="sites" value="500">
-		<input type="button" value="Go!" onclick="webGLStart()">
-	</form>
+  <form>
+    Number of sites: <input type="text" id="sites" value="500">
+    <input type="button" value="Go!" onclick="webGLStart()">
+  </form>
     <canvas id="voronoi_canvas" style="border: solid; color: black; border-width: 1px;" width="800" height="800"></canvas>
 </body>
 
