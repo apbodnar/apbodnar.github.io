@@ -92,6 +92,7 @@ function initTexture() {
 var squareVertexPositionBuffer;
 var squareVertexTransBuffer;
 var num_triangles;
+
 function initBuffers() {
   squareVertexPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
@@ -130,7 +131,7 @@ function initBuffers() {
 }
 
 var lastTime = 0;
-var elapsed = 0;
+var elapsed = 0.0;
 
 function animate() {
   var timeNow = new Date().getTime();
@@ -154,7 +155,7 @@ function drawScene() {
   gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
   gl.uniform1i(shaderProgram.samplerUniform,0);
 
-  gl.uniform1f(shaderProgram.tickUniform, elapsed/10.0);
+  gl.uniform1f(shaderProgram.tickUniform, elapsed);
   gl.uniform1i(shaderProgram.countUniform, num_triangles);
 
   gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
