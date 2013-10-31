@@ -90,11 +90,12 @@ function initTexture() {
 }
 
 var squareVertexPositionBuffer;
+var squareVertexTransBuffer;
 var num_triangles;
 function initBuffers() {
   squareVertexPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-  vertices = [
+  var vertices = [
   1.0,  1.0,  0.0,
   -1.0,  1.0,  0.0,
   1.0, -1.0,  0.0,
@@ -114,16 +115,18 @@ function initBuffers() {
   squareVertexPositionBuffer.itemSize = 3;
   squareVertexPositionBuffer.numItems = 3*num_triangles*2;
 
-  squareVertexColorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-  trans = [];
+  squareVertexTransBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTransBuffer);
+
+  var trans = [];
   for (var i=0; i < num_triangles; i++) {
-  var c = [2*(Math.random()-0.5),2*( Math.random()-0.5), 0, 1.0]
+  var c = [2*(Math.random()-0.5),2*( Math.random()-0.5)]
       trans = trans.concat(c,c,c,c,c,c);
   }
+
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(trans), gl.STATIC_DRAW);
-  squareVertexColorBuffer.itemSize = 4;
-  squareVertexColorBuffer.numItems = 3*num_triangles*2;
+  squareVertexTransBuffer.itemSize = 2;
+  squareVertexTransBuffer.numItems = 3*num_triangles*2;
 }
 
 var lastTime = 0;
@@ -144,8 +147,8 @@ function drawScene() {
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTransBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexTransBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, cubeTexture);

@@ -14,34 +14,31 @@
   uniform float tick; 
   uniform sampler2D uSampler; 
   
-  varying vec4 tcoord;
+  varying vec2 tcoord;
   varying vec4 rc;
   
     void main(void) {
     //gl_FragColor = vec4(abs(color),1);
-    gl_FragColor = texture2D(uSampler, tcoord.xy/2.0 - vec2(0.5, 0.5));
+    gl_FragColor = texture2D(uSampler, tcoord/2.0 - vec2(0.5, 0.5));
     //gl_FragColor = rc;
     }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
-    precision highp float;
+  precision highp float;
   attribute vec3 aVertexPosition;
-  attribute vec4 aVertexTrans;
+  attribute vec2 aVertexTrans;
   
-  varying vec4 tcoord;
-  varying vec4 rc;
+  varying vec2 tcoord;
   
   uniform float tick;
   uniform int count;
   float zscale = 2.0;
-  //eye-ballin' it
   float parabolZ(vec2 p){
     return ((p.x*p.x)+(p.y*p.y))/zscale;
   }
   
   vec3 gradient(vec2 p){
-    //return vec3(2.0*p.x,2.0*p.y,1.0/parabolZ(p))/3.0;
     return vec3(2.0*p.x/zscale,2.0*p.y/zscale,1.0);
   }
   
@@ -87,7 +84,7 @@
     vec3 grad = (gradient(rTrans.xy));
     mat4 r = netR(grad);
     vec4 vTrans = vec4(rTrans.xy,-parabolZ(rTrans.xy),0);
-    tcoord = vTrans;
+    tcoord = vTrans.xy;
         gl_Position = vec4((vec4(15.0/sqrt(float(count))*aVertexPosition, 0.0) * r + vTrans).xyz,1.0) + vec4(0,0,0.0,0);
   }
 </script>
