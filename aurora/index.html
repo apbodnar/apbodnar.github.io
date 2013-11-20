@@ -1,0 +1,74 @@
+
+<html>
+
+<head>
+<title>Aurora</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<script type="text/javascript" src="gl-matrix.js"></script>
+<script type="text/javascript" src="webgl-utils.js"></script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+  precision highp float;
+  
+  uniform float tick; 
+  uniform sampler2D uSampler; 
+  
+  varying float noise;
+
+  varying vec4 coord;
+    void main(void) {
+    float x = coord.x;
+    float y = coord.y;
+    float z = coord.z;
+    //float intensity = sin(100.0*coord.x*sin((tick/100.0)/coord.x));
+    float xr_intensity = 0.3;
+    float xg_intensity = 1.0;//sin(10.0*coord.x);
+    float xb_intensity = 0.3 + 0.5*sin(x+tick/1000.0);
+    
+    float perturb = (sin(70.8467246*x) * cos(22.8658176*x+tick/200.0))/3.0 + 1.0;
+    float y_intensity = ((pow(y,2.0) - pow(y,3.0)) / 0.15) * perturb;
+
+    float redband = y_intensity * xr_intensity;
+    float greenband = y_intensity * xg_intensity;
+    float blueband = y_intensity * xb_intensity;
+
+    //float redband = r_intensity;//(coord.y)*intensity;
+    //float greenband = (pow(y,2.0) - pow(y,3.0)) * g_intensity;
+    //float blueband = b_intensity;
+    float alpha = 0.2;
+    gl_FragColor = normalize(vec4(redband,greenband,blueband,alpha));
+  }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  precision highp float;
+  attribute vec3 aVertexPosition;
+  uniform float tick;
+  uniform mat4 PM;
+  uniform mat4 R;
+
+  uniform float crunch;
+  uniform float num_quads;
+
+  varying vec4 coord;
+  varying float noise;
+
+  void main(void) {
+    coord = vec4(aVertexPosition,1.0);
+    float x = aVertexPosition.x-(crunch*num_quads);
+    float y = aVertexPosition.y+0.5*sin(aVertexPosition.x+tick/2000.0);
+    float z = -2.0+0.2*sin(aVertexPosition.x*5.0-tick/500.0);
+    gl_Position = vec4(x,y,z,1.0)*R*PM;
+  }
+</script>
+
+<script src="aurora.js" type="text/javascript"></script>
+</head>
+
+
+<body onload="webGLStart();">
+    <canvas id="aurora_canvas" style="border: solid; color: black; border-width: 1px;" width="800" height="800"></canvas>
+</body>
+
+</html>
