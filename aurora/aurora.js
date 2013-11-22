@@ -96,21 +96,21 @@ function initTexture() {
 
 var squareVertexPositionBuffer;
 var squareVertexTransBuffer;
-var num_quads = 600;
-var crunch = 0.005;
+var num_quads = 150;
+var crunch = 0.02;
 var persp = mat4.create();
-mat4.perspective(persp,45.0, 1.0, 1.0, 100.0);
+mat4.perspective(persp,70.0, 1.0, 1.0, 15.0);
 var rotation = mat4.create();
-mat4.rotateX(rotation, rotation, 1.0 );
-//mat4.translate(rotation, rotation, [0,0,0]);
-console.log(rotation);
+mat4.translate(rotation, rotation, [0,0,-4.3]);
+mat4.rotateX(rotation, rotation, -0.5);
+
 
 
 function generateStrip(num_quads, crunch) {
   vertices = [];
   for(var i=0; i< 2*num_quads+1; i+=2){
-    vert1 = [i*crunch, (i+1)%2, -2];
-    vert2 = [i*crunch, i%2    , -2];
+    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5, 0];
+    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5    , 0];
     vertices = vertices.concat(vert1);
     vertices = vertices.concat(vert2);
   }
