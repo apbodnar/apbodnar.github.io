@@ -87,7 +87,6 @@ function initShaders() {
   shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
   shaderProgram.perspectiveUniform = gl.getUniformLocation(shaderProgram, "PM");
   shaderProgram.rotationUniform = gl.getUniformLocation(shaderProgram, "R");
-  shaderProgram.osyUniform = gl.getUniformLocation(shaderProgram, "osy");
   shaderProgram.oszUniform = gl.getUniformLocation(shaderProgram, "osz");
 
 }
@@ -109,14 +108,14 @@ function initTexture() {
 }
 
 function generateStrip(num_quads, crunch) {
-  var osy = (Math.random() - 0.5)*2.0;
-  var osz = (Math.random() -0.5)*4.0;
+  var osy = 0.0;
+  var osz = (Math.random() -0.5)*2.0;
   offsets.push({osy: osy, osz: osz});
 
   vertices = [];
   for(var i=0; i< 2*num_quads+1; i+=2){
-    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5 + osy, -osz];
-    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5 + osy    ,  -osz];
+    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5, -osz];
+    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5   ,  -osz];
     vertices = vertices.concat(vert1);
     vertices = vertices.concat(vert2);
   }
