@@ -1,4 +1,16 @@
 var gl;
+var num_quads = 300;
+var num_strips = 5;
+var crunch = 0.02;
+var offsets = [{}];
+var persp = mat4.create();
+mat4.perspective(persp,90.0, 1.0, 1.0, 15.0);
+var rotation = mat4.create();
+mat4.translate(rotation, rotation, [0,0,-3.0]);
+mat4.rotateX(rotation, rotation, -0.5);
+
+var squareVertexPositionBuffer = [num_strips];
+var squareVertexTransBuffer;
 
 function initGL(canvas) {
   try {
@@ -75,6 +87,8 @@ function initShaders() {
   shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
   shaderProgram.perspectiveUniform = gl.getUniformLocation(shaderProgram, "PM");
   shaderProgram.rotationUniform = gl.getUniformLocation(shaderProgram, "R");
+  shaderProgram.osyUniform = gl.getUniformLocation(shaderProgram, "osy");
+  shaderProgram.oszUniform = gl.getUniformLocation(shaderProgram, "osz");
 
 }
 
@@ -94,23 +108,15 @@ function initTexture() {
   cubeImage.src = "flower.png";
 }
 
-var squareVertexPositionBuffer;
-var squareVertexTransBuffer;
-var num_quads = 150;
-var crunch = 0.02;
-var persp = mat4.create();
-mat4.perspective(persp,70.0, 1.0, 1.0, 15.0);
-var rotation = mat4.create();
-mat4.translate(rotation, rotation, [0,0,-4.3]);
-mat4.rotateX(rotation, rotation, -0.5);
-
-
-
 function generateStrip(num_quads, crunch) {
+  var osy = (Math.random() - 0.5)*2.0;
+  var osz = (Math.random() -0.5)*4.0;
+  offsets.push({osy: osy, osz: osz});
+
   vertices = [];
   for(var i=0; i< 2*num_quads+1; i+=2){
-    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5, 0];
-    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5    , 0];
+    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5 + osy, -osz];
+    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5 + osy    ,  -osz];
     vertices = vertices.concat(vert1);
     vertices = vertices.concat(vert2);
   }
@@ -118,14 +124,17 @@ function generateStrip(num_quads, crunch) {
 }
 
 function initBuffers() {
-  squareVertexPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+  for(var i=0; i< num_strips; i++){
+    squareVertexPositionBuffer[i] = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer[i]);
 
-  vertices = generateStrip(num_quads, crunch);
-  
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  squareVertexPositionBuffer.itemSize = 3;
-  squareVertexPositionBuffer.numItems = 2*num_quads+2;
+    vertices = generateStrip(num_quads, crunch);
+    
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    squareVertexPositionBuffer[i].itemSize = 3;
+    squareVertexPositionBuffer[i].numItems = 2*num_quads+2;
+  }
+  console.log(offsets);
 }
 
 var lastTime = 0;
@@ -143,16 +152,20 @@ function drawScene() {
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  for(var i=0 ; i< num_strips; i++){
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer[i]);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer[i].itemSize, gl.FLOAT, false, 0, 0);
 
-  gl.uniform1f(shaderProgram.tickUniform, elapsed);
-  gl.uniform1f(shaderProgram.crunchUniform, crunch);
-  gl.uniform1f(shaderProgram.countUniform, num_quads);
-  gl.uniformMatrix4fv(shaderProgram.perspectiveUniform, false, persp);
-  gl.uniformMatrix4fv(shaderProgram.rotationUniform, false, rotation);
+    gl.uniform1f(shaderProgram.tickUniform, elapsed);
+    gl.uniform1f(shaderProgram.crunchUniform, crunch);
+    gl.uniform1f(shaderProgram.countUniform, num_quads);
+    gl.uniformMatrix4fv(shaderProgram.perspectiveUniform, false, persp);
+    gl.uniformMatrix4fv(shaderProgram.rotationUniform, false, rotation);
+    gl.uniform1f(shaderProgram.osyUniform, offsets[i].osy);
+    gl.uniform1f(shaderProgram.oszUniform, offsets[i].osz);
 
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer[i].numItems);
+  }
 }
 
 function tick() {
