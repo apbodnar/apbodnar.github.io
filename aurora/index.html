@@ -9,16 +9,13 @@
 <script type="text/javascript" src="webgl-utils.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
-  precision highp float;
+  precision mediump float;
   
   uniform float tick; 
-  uniform sampler2D uSampler; 
-  uniform float osz;
-  
-  varying float noise;
+  uniform float osz; //also serves as a seed for bad RNG
 
   varying vec4 coord;
-  void main(void) {
+  void main(void) { //expensive procedural texturing
     float x = coord.x;
     float y = coord.y;
     float z = coord.z;
@@ -27,7 +24,7 @@
     float xg_intensity = 1.0 - 0.6*sin(x/2.3457+tick/1848.0+osz*6.28);//sin(10.0*coord.x);
     float xb_intensity = 0.3 + 0.8*sin(x/68.52+tick/5000.0+osz*6.28);
     
-    float perturb = (sin(x/41.0 - tick/2000.0) * cos(66.8658176*x+tick/800.0))/3.0 + 1.0;
+    float perturb = (sin(x/41.0 - tick/2000.0) + cos(66.8658176*x+tick/800.0))/3.0 + 1.0;
     float y_intensity = ((pow(1.0-y,2.0) - pow(1.0-y,3.0)) / 0.15) * perturb;
 
     float redband = y_intensity * xr_intensity;
@@ -40,9 +37,10 @@
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
-  precision highp float;
+  precision mediump float;
   attribute vec3 aVertexPosition;
   uniform float tick;
+  
   uniform mat4 PM;
   uniform mat4 R;
 
@@ -53,13 +51,12 @@
   uniform float osz;
 
   varying vec4 coord;
-  varying float noise;
 
   void main(void) {
     coord = vec4(aVertexPosition,1.0) + vec4(0.0,0.5,0.0,0.0);
     float x = aVertexPosition.x;
     float y = aVertexPosition.y+0.5*sin(aVertexPosition.x+tick/4000.0+osz*6.28)+0.1*sin(aVertexPosition.x*5.0+tick/2032.0+osz*42.28);
-    float z = aVertexPosition.z+0.2*sin(aVertexPosition.x*3.87-tick/2500.0+osz*546.28);
+    float z = aVertexPosition.z+0.2*sin(aVertexPosition.x*3.87-tick/3500.0+osz*546.28)+cos(aVertexPosition.x/2.0)/2.0;
     gl_Position = PM*R*vec4(x,y,z,1.0) + vec4(0.0,0.8,0.0,0.0);
   }
 </script>
