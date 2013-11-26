@@ -6,8 +6,7 @@ var offsets = [{}];
 var persp = mat4.create();
 mat4.perspective(persp,90.0, 1.0, 1.0, 15.0);
 var rotation = mat4.create();
-mat4.translate(rotation, rotation, [0,0,-3.0]);
-mat4.rotateX(rotation, rotation, -0.5);
+mat4.translate(rotation, rotation, [0,2,-3.0]);
 
 var squareVertexPositionBuffer = [num_strips];
 var squareVertexTransBuffer;
@@ -95,8 +94,8 @@ function generateStrip(num_quads, crunch) {
 
   vertices = [];
   for(var i=0; i< 2*num_quads+1; i+=2){
-    vert1 = [i*crunch-(crunch*num_quads), ((i+1)%2) - 0.5, -osz];
-    vert2 = [i*crunch-(crunch*num_quads), (i%2) -0.5   ,  -osz];
+    vert1 = [i*crunch-(crunch*num_quads), 1*(((i+1)%2) - 0.5), -osz];
+    vert2 = [i*crunch-(crunch*num_quads), 1*((i%2) -0.5)   ,  -osz];
     vertices = vertices.concat(vert1,vert2);
   }
   console.log(vertices);
