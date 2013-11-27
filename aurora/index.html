@@ -14,14 +14,14 @@
   uniform float osz; //also serves as a seed for bad RNG
 
   varying vec4 coord;
-  void main(void) { //expensive procedural texturing
+  void main(void) { //expensive procedural dynamic texturing
     float x = coord.x;
     float y = coord.y;
     float z = coord.z;
       
-    float xr_intensity = sin(x/5.3457+tick/1848.0+osz*9.28);
+    float xr_intensity = sin(x/18.3457+tick/4848.0+osz*9.28);
     float xg_intensity = sin(x/20.3457-tick/3025.0+osz*6.28);//sin(10.0*coord.x);
-    float xb_intensity = sin(x/3.52+tick/1000.0+osz*7.28);
+    float xb_intensity = sin(x/15.52+tick/2000.0+osz*7.28);
     
     float perturb = (sin(x*41.0 - tick/1932.0) + cos(66.8658176*x+tick/800.0))/4.0 + 1.5;
     float y_intensity = ((pow(1.0-y,2.0) - pow(1.0-y,3.0)) / 0.15) * perturb;
@@ -31,8 +31,7 @@
     float blueband = y_intensity * xb_intensity;
 
     float alpha = 1.0;
-    gl_FragColor = normalize(vec4(redband,greenband,blueband,alpha));// + vec4(1.0,0.0,0.0,1.0);
-    //gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    gl_FragColor = normalize(vec4(redband,greenband,blueband,alpha));//normalize for softer colors
   }
 </script>
 
@@ -56,7 +55,7 @@
     coord = vec4(aVertexPosition,1.0) + vec4(0.0,0.5,0.0,0.0);
     float x = aVertexPosition.x;
     float y = 2.5*aVertexPosition.y+0.5*sin(aVertexPosition.x+tick/4000.0+osz*6.28)+0.1*sin(aVertexPosition.x*5.0+tick/2032.0+osz*42.28);
-    float z = aVertexPosition.z+0.2*sin(aVertexPosition.x*3.87-tick/3500.0+osz*546.28)+cos(aVertexPosition.x/2.0)/4.0;
+    float z = aVertexPosition.z+0.6*sin(aVertexPosition.x*3.87-tick/3500.0+osz*546.28)+cos(aVertexPosition.x/2.0)/6.0;
     gl_Position = PM*R*vec4(x,y,z,1.0);
   }
 </script>
