@@ -1,7 +1,7 @@
 var gl;
-var num_quads = 300;
-var num_strips = 6;
-var crunch = 0.02;
+var num_quads = 100;
+var num_strips = 8;
+var crunch = 0.06;
 var offsets = [{}];
 var persp = mat4.create();
 mat4.perspective(persp,90.0, 1.0, 1.0, 15.0);
