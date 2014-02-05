@@ -1,12 +1,12 @@
 
 
 var gl;
-var num_quads = 100;
-var num_strips = 8;
+var num_quads = 200;
+var num_strips = 7;
 var crunch = 0.06;
 var offsets = [{}];
 var persp = mat4.create();
-mat4.perspective(persp,90.0, 1.0, 1.0, 15.0);
+mat4.perspective(persp,90.0, screen.width/screen.height, 1.0, 15.0);
 var rotation = mat4.create();
 mat4.rotateX(rotation, rotation, -0.1);
 mat4.translate(rotation, rotation, [0,2,-3.0]);
@@ -16,7 +16,7 @@ var squareVertexTransBuffer;
 
 function initGL(canvas) {
   try {
-    gl = canvas.getContext("experimental-webgl");
+    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     gl.viewportWidth = canvas.width;
     gl.viewportHeight = canvas.height;
   } catch (e) {
@@ -134,7 +134,7 @@ function drawScene() {
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  for(var i=0 ; i< num_strips; i++){
+  for(var i=1 ; i< num_strips; i++){
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer[i]);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer[i].itemSize, gl.FLOAT, false, 0, 0);
@@ -160,6 +160,8 @@ function tick() {
 function webGLStart() {
   
   var canvas = document.getElementById("aurora_canvas");
+  canvas.width = screen.width;
+  canvas.height= screen.height;
   initGL(canvas);
   initShaders();
   initBuffers();

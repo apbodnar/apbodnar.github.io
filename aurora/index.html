@@ -11,7 +11,7 @@
   precision mediump float;
   
   uniform float tick; 
-  uniform float osz; //also serves as a seed for bad RNG
+  uniform float osz; //also serves as a seed for bad noise
 
   varying vec4 coord;
   void main(void) { //expensive procedural dynamic texturing
@@ -30,7 +30,7 @@
     float greenband = y_intensity * xg_intensity;
     float blueband = y_intensity * xb_intensity;
 
-    float alpha = 1.0;
+    float alpha = 1.0;//-length(vec3(redband,greenband,blueband));
     gl_FragColor = normalize(vec4(redband,greenband,blueband,alpha));//normalize for softer colors
   }
 </script>
@@ -54,7 +54,7 @@
   void main(void) {
     coord = vec4(aVertexPosition,1.0) + vec4(0.0,0.5,0.0,0.0);
     float x = aVertexPosition.x;
-    float y = 2.5*aVertexPosition.y+0.5*sin(aVertexPosition.x+tick/4000.0+osz*6.28)+0.1*sin(aVertexPosition.x*5.0+tick/2032.0+osz*42.28);
+    float y = 2.5*aVertexPosition.y+0.99*sin(aVertexPosition.x+tick/4000.0+osz*6.28)+0.2*sin(aVertexPosition.x*5.0+tick/2032.0+osz*42.28);
     float z = aVertexPosition.z+0.6*sin(aVertexPosition.x*3.87-tick/3500.0+osz*546.28)+cos(aVertexPosition.x/2.0)/6.0;
     gl_Position = PM*R*vec4(x,y,z,1.0);
   }
@@ -64,8 +64,10 @@
 </head>
 
 
-<body onload="webGLStart();">
-    <canvas id="aurora_canvas" style="border: solid; color: black; border-width: 1px;" width="800" height="800"></canvas>
+<body onload="webGLStart();" style="margin:0;">
+    
+    <canvas id="aurora_canvas" ></canvas>
+    <img src='sil.png' style="height:100%; width:110%; z-index:9001; position:fixed; top:0px; left:-10px;"><img>
 </body>
 
 </html>
