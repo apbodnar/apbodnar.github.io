@@ -2,9 +2,9 @@ function Crawler(){
 	
 	this.chromosome = {legs: [], segments: []};
 	this.state = [];
-	this.max_legs = 100;
+	this.max_legs = Math.random()*100;
 	this.segment_ids = [];
-	this.segment_pool_size = 1000;
+	this.segment_pool_size = Math.random()*2000;
 	this.core = new Core(Math.sqrt(this.segment_pool_size));
 	for(var i=0; i<this.max_legs; i++){
 		this.chromosome.legs.push(new Base);

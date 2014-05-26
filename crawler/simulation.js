@@ -5,7 +5,7 @@ var renderer;
 var gravity = -0.4;
 var k = 300;
 var time = 0;
-var dt = 0.02;
+var dt = 0.03;
 var ground = -6;
 
 function spawn(){
@@ -15,6 +15,7 @@ function spawn(){
 function move(){
 	calcForce();
 	calcPosition();
+	resetForce();
 	resetForce();
 }
 
@@ -70,9 +71,9 @@ function checkCollision(node){
 	if(node.p[1] <= ground){
 		//fudge-factors everywhere
 		var l = vec2.length([node.v[0],node.v[2]])/500;
-		node.v[0] *= 0.8;
-		node.v[2] *= 0.8;
-		node.v[1] *= 0.7;
+		node.v[0] *= 0.9;
+		node.v[2] *= 0.9;
+		node.v[1] *= 0.9;
 		node.a[1] += (node.p[1] - ground)*-400 + (-gravity*mass);
 		
 	}
