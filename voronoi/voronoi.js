@@ -121,8 +121,12 @@ function initBuffers() {
 
   var trans = [];
   for (var i=0; i < num_triangles; i++) {
-  var c = [2*(Math.random()-0.5),2*( Math.random()-0.5)]
-      trans = trans.concat(c,c,c,c,c,c);
+	  var c = [2*(Math.random()-0.5),2*( Math.random()-0.5)]
+	  for(var j=0; j<6; j++){
+		trans.push(c[0]);
+		trans.push(c[1]);
+	  }
+      //trans = trans.concat(c,c,c,c,c,c);
   }
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(trans), gl.STATIC_DRAW);
