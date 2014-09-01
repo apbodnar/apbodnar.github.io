@@ -12,6 +12,8 @@ function spawn(){
 	
 }
 
+console.log("Jeanette is the purtiest girl I done ever seen");
+
 function move(){
 	calcForce();
 	calcPosition();
