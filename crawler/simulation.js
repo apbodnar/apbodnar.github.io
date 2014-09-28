@@ -103,6 +103,14 @@ function addSegmentMotives(id, node, axis){
 
 }
 
+function getEquilibriumAngle(){
+	for(var i=0; i<crawler.segment_ids.length; i++){
+		for(var j=0; j<crawler.segment_ids[i].length; j++){
+			
+		}
+	}
+}
+
 function calcSegmentMotive(){
 	for(var i=0; i<crawler.segment_ids.length; i++){
 		for(var j=0; j<crawler.segment_ids[i].length; j++){
@@ -112,11 +120,11 @@ function calcSegmentMotive(){
 			var dir = vec3.sub(vec3.create(),junction,end);
 			var axis = crawler.chromosome.segments[id].axis
 			var f_dir = vec3.cross(vec3.create(), dir, axis);
-			var strength =  crawler.chromosome.segments[id].strength;
+			var strength =  crawler.chromosome.segments[id].strength/10;
 			var period =  crawler.chromosome.segments[id].period;
 			var offset =  crawler.chromosome.segments[id].offset;
 			vec3.normalize(f_dir,f_dir);
-			vec3.scale(f_dir,f_dir,strength*Math.sin(time/100/period+offset));
+			vec3.scale(f_dir,f_dir,strength*Math.sin(time/1000/period+offset));
 			var a = crawler.chromosome.segments[id].end.a;
 			vec3.add(a,a,f_dir);	
 		}
@@ -156,6 +164,7 @@ function resetForce(){
 
 function startSim(){
 	crawler = new Crawler();
+	console.log(crawler);
 	canvas = document.getElementById("c");
 	renderer = new Renderer(canvas);
 	animate();

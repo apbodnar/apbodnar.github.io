@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Jeanette</title>
+		<script id="letter-shader-vs" type="x-shader/x-vertex">
+			attribute vec3 inVertex;
+			uniform mat4 MVM;
+			uniform mat4 PM;
+			varying float depth;
+			varying float x;
+			void main(void) {
+				depth = inVertex.z;
+				vec4 world = MVM * vec4(inVertex,1);
+				x = world.x;
+				gl_Position = PM * world;
+			}
+		</script>
+		
+		<script id="letter-shader-fs" type="x-shader/x-fragment">
+			precision mediump float;
+			varying float depth;
+			uniform float time;
+			varying float x;
+			void main(void) {
+			vec3 color = abs(normalize(vec3(sin(x/4.0+time/400.0),cos(x/4.0+time/444.0),-sin(x/4.0+time/689.0))));
+				gl_FragColor = vec4(color,1);
+			}
+		</script>
+		
+		<script id="blob-shader-vs" type="x-shader/x-vertex">
+			attribute vec3 inVertex;
+			uniform mat4 MVM;
+			uniform mat4 PM;
+			uniform float time;
+			varying vec3 normal;
+			vec3 planeToSphere(vec3 vert){
+              float theta = vert.y;
+              float phi = vert.x;
+              float x = sin(theta) * cos(phi);
+              float y = cos(theta);
+              float z = sin(theta) * sin(phi);
+              float warp = 2.5+sin(theta*4.0 + time/100.0) + cos(phi*4.0 + time/100.0);
+              return vec3(x,y,z) * warp/2.0;
+            }
+			void main(void) {
+				vec3 vert = planeToSphere(inVertex);
+				normal = abs(normalize(vert));
+				vec4 world = MVM * vec4(vert,1);
+				gl_Position = PM * world;
+			}
+		</script>
+		
+		<script id="blob-shader-fs" type="x-shader/x-fragment">
+			precision mediump float;
+			varying vec3 normal;
+			void main(void) {
+				gl_FragColor = vec4(normal,1);
+			}
+		</script>
+		<script type="text/javascript" src="gl-matrix-min.js"></script>
+		<script type="text/javascript" src="renderer.js"></script>
+	</head>
+
+	<body style="margin:0; position:fixed;" onload="start()">
+		<canvas id="c"></canvas>
+		<input type="text" id="user" maxlength="16" style="opacity: 0;"  autofocus></input>
+	</body>
+</html>
