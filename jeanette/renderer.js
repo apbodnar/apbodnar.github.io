@@ -146,7 +146,7 @@ function initLetterBuffers(){
 
 function start(){
 	//getXml("cube.xml");
-	getXml("./jeanette/alphabetbigtnr.dae");
+	getXml("./alphabetbigtnr.dae");
 	//getXml("alphabetsmalltnr.dae");
 }
 
