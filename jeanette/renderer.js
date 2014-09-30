@@ -110,9 +110,10 @@ function generateIndices(){
 
 function getXml(path){
 	var oReq = new XMLHttpRequest();
+	var parser = new DOMParser();
 	oReq.onload = function(r){
 		console.log(r);
-		var doc = r.currentTarget.responseXML,
+		var doc = r.currentTarget.responseXML || parser.parseFromString(r.currentTarget.responseText,"text/xml"),
 			geo = doc.getElementsByTagName('geometry');
 		handleObjects(geo);
 	};
