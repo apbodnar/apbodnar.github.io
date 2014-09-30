@@ -258,7 +258,7 @@ function drawBlob(){
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, blob_indices);
 	gl.vertexAttribPointer(blob_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 	mat4.identity(MVM);
-	mat4.rotateY(MVM, MVM, -time/179.0);
+	mat4.rotateY(MVM, MVM, -time/200.0);
 	if(!vmode){
 		mat4.rotateX(MVM, MVM, time/245.2);
 		mat4.rotateZ(MVM, MVM, time/309.7);
@@ -281,12 +281,9 @@ function drawLetters(text, y){
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffers[buffer_index]);
 		gl.vertexAttribPointer(letter_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 		mat4.identity(MVM);
-		mat4.identity(t0);
-		mat4.identity(t1);
-		mat4.identity(r);
-		mat4.translate(t0, t0, [0.6*(i-text.length/2),0,0]);
-		mat4.rotateY(r, r, time/200.0);
-		mat4.translate(t1, t1, [0,y,-10]);
+		mat4.translate(t0, mat4.identity(t0), [0.6*(i-text.length/2),0,0]);
+		mat4.rotateY(r, mat4.identity(r), time/200.0);
+		mat4.translate(t1, mat4.identity(t1), [0,y,-10]);
 		mat4.mul(tr, t1, r);
 		mat4.mul(MVM, tr, t0);
 		gl.uniformMatrix4fv(letter_program.pmUniform, false, PM);
