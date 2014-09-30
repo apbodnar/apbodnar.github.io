@@ -12,6 +12,10 @@ var gl,
 	blob_indices,
 	PM = mat4.create(),
 	MVM = mat4.create(),
+	t0 = mat4.create(),
+	r = mat4.create(),
+	tr = mat4.create(),
+	t1 = mat4.create(),
 	text = "type",
 	warp = new Float32Array(10);
 	
@@ -112,7 +116,6 @@ function getXml(path){
 	var oReq = new XMLHttpRequest();
 	var parser = new DOMParser();
 	oReq.onload = function(r){
-		console.log(r);
 		var doc = r.currentTarget.responseXML || parser.parseFromString(r.currentTarget.responseText,"text/xml"),
 			geo = doc.getElementsByTagName('geometry');
 		handleObjects(geo);
@@ -147,8 +150,8 @@ function initLetterBuffers(){
 
 function start(){
 	//getXml("cube.xml");
-	getXml("./alphabetbigtnr.dae");
-	//getXml("alphabetsmalltnr.dae");
+	//getXml("./alphabetbigtnr.dae");
+	getXml("./alphabetsmalltnr.dae");
 }
 
 function initGL() {
@@ -255,10 +258,10 @@ function drawBlob(){
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, blob_indices);
 	gl.vertexAttribPointer(blob_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 	mat4.identity(MVM);
-	mat4.rotateY(MVM, MVM, time/200.0);
+	mat4.rotateY(MVM, MVM, -time/179.0);
 	if(!vmode){
-		mat4.rotateX(MVM, MVM, time/278.2);
-		mat4.rotateZ(MVM, MVM, time/359.7);
+		mat4.rotateX(MVM, MVM, time/245.2);
+		mat4.rotateZ(MVM, MVM, time/309.7);
 	}
 	mat4.translate(MVM, MVM, [0,0,-10]);
 	gl.uniformMatrix4fv(blob_program.pmUniform, false, PM);
@@ -270,16 +273,22 @@ function drawBlob(){
 	gl.drawElements(gl.TRIANGLES,blob_indices.length, gl.UNSIGNED_SHORT, 0);
 }
 
-function drawLetters(gtext, y){
+function drawLetters(text, y){
 	gl.useProgram(letter_program);
-	for(var i=0; i<gtext.length; i++){
-		var buffer_index = char_map[gtext.charAt(i)];
+	for(var i=0; i<text.length; i++){
+		var buffer_index = char_map[text.charAt(i)];
 		gl.bindBuffer(gl.ARRAY_BUFFER, vert_buffers[buffer_index]);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffers[buffer_index]);
 		gl.vertexAttribPointer(letter_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 		mat4.identity(MVM);
-		mat4.rotateY(MVM, MVM, time/200.0);
-		mat4.translate(MVM, MVM, [0.6*(i-gtext.length/2),y,-10]);
+		mat4.identity(t0);
+		mat4.identity(t1);
+		mat4.identity(r);
+		mat4.translate(t0, t0, [0.6*(i-text.length/2),0,0]);
+		mat4.rotateY(r, r, time/200.0);
+		mat4.translate(t1, t1, [0,y,-10]);
+		mat4.mul(tr, t1, r);
+		mat4.mul(MVM, tr, t0);
 		gl.uniformMatrix4fv(letter_program.pmUniform, false, PM);
 		gl.uniformMatrix4fv(letter_program.mvmUniform, false, MVM);
 		gl.uniform1f(letter_program.timeUniform, time);
