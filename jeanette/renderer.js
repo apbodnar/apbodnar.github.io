@@ -2,7 +2,9 @@ var gl,
 	letter_program,
 	blob_program,
 	time = 0,
-	plane_res = 100,
+	plane_res = 200,
+	vmode = 0,
+	fmode = vmode,
 	letters = [],
 	vert_buffers = [],
 	index_buffers = [],
@@ -10,7 +12,8 @@ var gl,
 	blob_indices,
 	PM = mat4.create(),
 	MVM = mat4.create(),
-	text = "emnts";
+	text = "type",
+	warp = new Float32Array(10);
 	
 var char_map = {
 	a:27,b:26,c:25,d:24,e:23,f:22,g:21,h:20,i:19,j:18,k:17,l:16,m:15,
@@ -83,9 +86,9 @@ function generatePlane(){
 	};
 	for(var j=0; j< plane_res; j++){
 		for(var i=0; i<plane_res; i++){
-			var x = pi*(i/plane_res)*((plane_res+1)/plane_res);
-			var y = two_pi*(j/plane_res)*((plane_res+1)/plane_res);
-			[x,y,0].forEach(push);
+			var x = two_pi*(i/plane_res)*((plane_res+1)/plane_res);
+			var z = pi*(j/plane_res)*((plane_res+1)/plane_res);
+			[x,0,z].forEach(push);
 		}
 	}
 	return plane;
@@ -108,6 +111,7 @@ function generateIndices(){
 function getXml(path){
 	var oReq = new XMLHttpRequest();
 	oReq.onload = function(r){
+		console.log(r);
 		var doc = r.currentTarget.responseXML,
 			geo = doc.getElementsByTagName('geometry');
 		handleObjects(geo);
@@ -142,7 +146,7 @@ function initLetterBuffers(){
 
 function start(){
 	//getXml("cube.xml");
-	getXml("alphabetbigtnr.dae");
+	getXml("/alphabetbigtnr.dae");
 	//getXml("alphabetsmalltnr.dae");
 }
 
@@ -152,10 +156,25 @@ function initGL() {
 	gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 	gl.viewportWidth = canvas.width = window.innerWidth;
 	gl.viewportHeight = canvas.height = window.innerHeight;
+	document.onclick = function(){
+		input.focus();
+	}
+	
 	input.oninput = function(e){
-		text = e.target.value || "";
-		text = text.toLowerCase();
+		inputHandler(e);
 	};
+}
+
+function inputHandler(e){
+	text = e.target.value || "";
+	text = text.toLowerCase();
+	vmode = fmode = text == "jeanette" ? 1 : 0;
+	for(var i=0; i<text.length; i++){
+		warp[i] = text.charCodeAt(i)-96;
+	}
+	for(var i=text.length; i<10; i++){
+		warp[i] = 1.0;
+	}
 }
 
 function getShader(gl, id) {
@@ -212,6 +231,9 @@ function initProgram(program, type) {
 	program.pmUniform = gl.getUniformLocation(program, "PM");
 	program.mvmUniform = gl.getUniformLocation(program, "MVM");
 	program.timeUniform = gl.getUniformLocation(program, "time");
+	program.warpUniform = gl.getUniformLocation(program, "warp");
+	program.vmodeUniform = gl.getUniformLocation(program, "vmode");
+	program.fmodeUniform = gl.getUniformLocation(program, "fmode");
 }
 
 function initRenderer(){
@@ -233,23 +255,30 @@ function drawBlob(){
 	gl.vertexAttribPointer(blob_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 	mat4.identity(MVM);
 	mat4.rotateY(MVM, MVM, time/200.0);
+	if(!vmode){
+		mat4.rotateX(MVM, MVM, time/278.2);
+		mat4.rotateZ(MVM, MVM, time/359.7);
+	}
 	mat4.translate(MVM, MVM, [0,0,-10]);
 	gl.uniformMatrix4fv(blob_program.pmUniform, false, PM);
 	gl.uniformMatrix4fv(blob_program.mvmUniform, false, MVM);
+	gl.uniform1fv(blob_program.warpUniform, warp);
 	gl.uniform1f(blob_program.timeUniform, time);
-	gl.drawElements(gl.LINES,blob_indices.length, gl.UNSIGNED_SHORT, 0);
+	gl.uniform1i(blob_program.vmodeUniform, vmode);
+	gl.uniform1i(blob_program.fmodeUniform, fmode);
+	gl.drawElements(gl.TRIANGLES,blob_indices.length, gl.UNSIGNED_SHORT, 0);
 }
 
-function drawLetters(){
+function drawLetters(gtext, y){
 	gl.useProgram(letter_program);
-	for(var i=0; i<text.length; i++){
-		var buffer_index = char_map[text.charAt(i)];
+	for(var i=0; i<gtext.length; i++){
+		var buffer_index = char_map[gtext.charAt(i)];
 		gl.bindBuffer(gl.ARRAY_BUFFER, vert_buffers[buffer_index]);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffers[buffer_index]);
 		gl.vertexAttribPointer(letter_program.vertexAttribute, 3, gl.FLOAT, false, 0, 0);
 		mat4.identity(MVM);
 		mat4.rotateY(MVM, MVM, time/200.0);
-		mat4.translate(MVM, MVM, [0.6*(i-text.length/2),-3,-10]);
+		mat4.translate(MVM, MVM, [0.6*(i-gtext.length/2),y,-10]);
 		gl.uniformMatrix4fv(letter_program.pmUniform, false, PM);
 		gl.uniformMatrix4fv(letter_program.mvmUniform, false, MVM);
 		gl.uniform1f(letter_program.timeUniform, time);
@@ -259,7 +288,10 @@ function drawLetters(){
 
 function draw(){
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	drawLetters();
+	drawLetters(text, -3);
+	if(vmode){
+		drawLetters("adam", 3);
+	}
 	drawBlob();
 }
 
