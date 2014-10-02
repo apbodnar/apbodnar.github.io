@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Jeanette</title>
+		<title>Perturbator</title>
 		<script id="letter-shader-vs" type="x-shader/x-vertex">
 			attribute vec3 inVertex;
 			uniform mat4 MVM;
@@ -15,7 +15,7 @@
 				gl_Position = PM * world;
 			}
 		</script>
-		
+
 		<script id="letter-shader-fs" type="x-shader/x-fragment">
 			precision mediump float;
 			varying float depth;
@@ -26,7 +26,7 @@
 				gl_FragColor = vec4(color,1);
 			}
 		</script>
-		
+
 		<script id="blob-shader-vs" type="x-shader/x-vertex">
 			attribute vec3 inVertex;
 			uniform mat4 MVM;
@@ -65,7 +65,7 @@
 				gl_Position = PM * world;
 			}
 		</script>
-		
+
 		<script id="blob-shader-fs" type="x-shader/x-fragment">
 			precision mediump float;
 			varying vec3 normal;
