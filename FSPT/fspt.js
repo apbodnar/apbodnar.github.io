@@ -4,10 +4,11 @@ var squareBuffer;
 var textures = []
 var noiseTex;
 var framebuffers = [];
-var numSpheres = 15;
+var numSpheres = 13;
 var spheres = [];
 var sphereAttrs = [];
 var colors = [];
+var materials = [];
 var eye = new Float32Array([0,0,-2]);
 var pingpong = 0;
 
@@ -32,46 +33,57 @@ function getShader(gl, id) {
 }
 
 function initPrimitives(){
-  for(var i=0; i< numSpheres-7; i++){
+  for(var i=0; i< numSpheres-8; i++){
     spheres = spheres.concat([2*Math.random()-1,2*Math.random()-1,1.7*Math.random()+0.3]);
-    sphereAttrs = sphereAttrs.concat([0.3,0.75,0.0]);
+    sphereAttrs = sphereAttrs.concat([0.3,1.0,0.0]);
     colors = colors.concat([Math.random(),Math.random(),Math.random()]);
+    materials = materials.concat([1.0,1.0,0]);
   }
-  spheres = spheres.concat([2*Math.random()-1,2*Math.random()-1,1.7*Math.random()+0.3]);
-  sphereAttrs = sphereAttrs.concat([0.3,0.0,100.0]);
+  spheres = spheres.concat([0,11,0.5]);
+  //spheres = spheres.concat([2*Math.random()-1,2*Math.random()-1,1.7*Math.random()+0.3]);
+  sphereAttrs = sphereAttrs.concat([10.015,0.0,7.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([5.0,0,0]);
 
   spheres = spheres.concat([0,1e3+1,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,0,1e3+2]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,-1e3-1,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([1e3+1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,0,0]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([-1e3-1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([0,0,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([-1e3-1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,0,-1e3]);
-  sphereAttrs = sphereAttrs.concat([1e3,1.0,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
   colors = colors.concat([1,1,1]);
+  materials = materials.concat([1.0,0,0]);
 
   spheres = new Float32Array(spheres);
   sphereAttrs = new Float32Array(sphereAttrs);
   colors = new Float32Array(colors);
+  materials = new Float32Array(materials);
 }
 
 function createTexture() {
@@ -116,6 +128,7 @@ function initShaders() {
   program.sphereLocations = gl.getUniformLocation(program, "spherePositions");
   program.attrLocations = gl.getUniformLocation(program, "sphereAttrs");
   program.colorLocations = gl.getUniformLocation(program, "sphereColors");
+  program.matLocation = gl.getUniformLocation(program, "sphereMats");
   program.countLocation = gl.getUniformLocation(program, "sphereCount");
   program.eyeLocation = gl.getUniformLocation(program, "eye");
   program.dimensionLocation = gl.getUniformLocation(program, "dims");
@@ -127,6 +140,7 @@ function initNoise(){
   var v1 = new Float32Array(b);
 
   for ( var i=0; i<gl.viewportWidth*gl.viewportHeight*4; i+=4 ){
+    //var tv = vec3.normalize([0,0,0],[Math.random(),Math.random(),Math.random()])
     v1[i] =   Math.random();
     v1[i+1] = Math.random();
     v1[i+2] = Math.random();
@@ -155,8 +169,53 @@ function initBuffers(){
   framebuffers.push(createFramebuffer(textures[1]));
 }
 
-function initEvents(){
+function rotateX(vec, a){
+  var x = vec[0],
+      y = vec[1],
+      z = vec[2] - 1;
+  var x1 = x,
+      y1 = z*Math.sin(a) + y*Math.cos(a),
+      z1 = z*Math.cos(a) - y*Math.sin(a) + 1;
+  return [x1,y1,z1];
+}
 
+function rotateY(vec, a){
+  var x = vec[0],
+      y = vec[1],
+      z = vec[2] - 1;
+  var y1 = y,
+      x1 = z*Math.sin(a) + x*Math.cos(a),
+      z1 = z*Math.cos(a) - x*Math.sin(a) + 1;
+  return [x1,y1,z1];
+}
+
+function initEvents(){
+  var flag = 0;
+  var element = document.getElementById("trace");
+  var xi, yi;
+  element.addEventListener("mousedown", function(e){
+    flag = 1;
+    xi = e.layerX;
+    yi = e.layerY;
+  }, false);
+  element.addEventListener("mousemove", function(e){
+    if(flag){
+      for(var i=0; i< numSpheres; i++){
+        var p0 = [spheres[i*3],spheres[i*3+1],spheres[i*3+2]];
+        var p1 = rotateX(p0,(e.layerY - yi) / 9000.0);
+        var p2 = rotateY(p1,(e.layerX - xi) / 9000.0);
+        spheres[i*3] = p2[0];
+        spheres[i*3+1] = p2[1];
+        spheres[i*3+2] = p2[2];
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[0]);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      pingpong = 0;
+    }
+  }, false);
+  element.addEventListener("mouseup", function(){
+    flag = 0;
+  }, false);
 }
 
 function drawScene(i){
@@ -169,6 +228,7 @@ function drawScene(i){
   gl.uniform3f(program.eyeLocation, eye[0],eye[1],eye[2]);
   gl.uniform3fv(program.sphereLocations, spheres);
   gl.uniform3fv(program.attrLocations, sphereAttrs);
+  gl.uniform3fv(program.matLocation, materials);
   gl.uniform3fv(program.colorLocations, colors);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, noiseTex);
@@ -185,6 +245,9 @@ function tick() {
   requestAnimationFrame(tick);
   pingpong++;
   drawScene(pingpong);
+  if(!(pingpong % 1000)){
+    console.log(pingpong);
+  }
 }
 
 function webGLStart() {
@@ -194,6 +257,7 @@ function webGLStart() {
   initPrimitives();
   initBuffers();
   initNoise();
+  initEvents();
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.disable(gl.BLEND);
