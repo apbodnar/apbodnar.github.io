@@ -11,6 +11,7 @@ var colors = [];
 var materials = [];
 var eye = new Float32Array([0,0,-2]);
 var pingpong = 0;
+var clear = 0;
 
 function initGL(canvas) {
   gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -32,51 +33,57 @@ function getShader(gl, id) {
   return shader;
 }
 
+function normalize(arr){
+  var m = Math.sqrt(arr[0]*arr[0]+arr[1]*arr[1]+arr[2]*arr[2])
+  return [arr[0]/m,arr[1]/m,arr[2]/m]
+}
+
 function initPrimitives(){
   for(var i=0; i< numSpheres-8; i++){
-    spheres = spheres.concat([2*Math.random()-1,2*Math.random()-1,1.7*Math.random()+0.3]);
-    sphereAttrs = sphereAttrs.concat([0.3,1.0,0.0]);
-    colors = colors.concat([Math.random(),Math.random(),Math.random()]);
-    materials = materials.concat([1.0,1.0,0]);
+    var r = 0.25;
+    spheres = spheres.concat([(2*Math.random()-1)*(1-r),(2*Math.random()-1)*(1-r),(2-r*2)*Math.random()+r]);
+    sphereAttrs = sphereAttrs.concat([r,0.85,0.0]);
+    colors = colors.concat([Math.random()*0.25+0.75,Math.random()*0.25+0.75,Math.random()*0.25+0.75]);
+    materials = materials.concat([1.0,Math.random()*4,Math.random()*2]);
   }
-  spheres = spheres.concat([0,11,0.5]);
+  spheres = spheres.concat([0,11,1]);
   //spheres = spheres.concat([2*Math.random()-1,2*Math.random()-1,1.7*Math.random()+0.3]);
-  sphereAttrs = sphereAttrs.concat([10.015,0.0,7.0]);
+  sphereAttrs = sphereAttrs.concat([10.010,0.0,12.0]);
   colors = colors.concat([1,1,1]);
   materials = materials.concat([5.0,0,0]);
 
   spheres = spheres.concat([0,1e3+1,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
   colors = colors.concat([1,1,1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,0,1e3+2]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
-  colors = colors.concat([1,1,1]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
+  colors = colors.concat([0.1,1,0.1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,-1e3-1,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
   colors = colors.concat([1,1,1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([1e3+1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
-  colors = colors.concat([1,0,0]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
+  colors = colors.concat([1,0.1,0.1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([-1e3-1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
-  colors = colors.concat([0,0,1]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
+  colors = colors.concat([0.1,0.1,1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([-1e3-1,0,0]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
   colors = colors.concat([1,1,1]);
   materials = materials.concat([1.0,0,0]);
 
   spheres = spheres.concat([0,0,-1e3]);
-  sphereAttrs = sphereAttrs.concat([1e3,0.75,0.0]);
+  sphereAttrs = sphereAttrs.concat([1e3,1,0.0]);
   colors = colors.concat([1,1,1]);
   materials = materials.concat([1.0,0,0]);
 
@@ -190,31 +197,33 @@ function rotateY(vec, a){
 }
 
 function initEvents(){
-  var flag = 0;
+
   var element = document.getElementById("trace");
   var xi, yi;
   element.addEventListener("mousedown", function(e){
-    flag = 1;
+    clear = 1;
     xi = e.layerX;
     yi = e.layerY;
   }, false);
   element.addEventListener("mousemove", function(e){
-    if(flag){
+    if(clear){
       for(var i=0; i< numSpheres; i++){
         var p0 = [spheres[i*3],spheres[i*3+1],spheres[i*3+2]];
-        var p1 = rotateX(p0,(e.layerY - yi) / 9000.0);
-        var p2 = rotateY(p1,(e.layerX - xi) / 9000.0);
+        var p1 = rotateX(p0,(e.layerY - yi) / 90.0);
+        var p2 = rotateY(p1,-(e.layerX - xi) / 90.0);
         spheres[i*3] = p2[0];
         spheres[i*3+1] = p2[1];
         spheres[i*3+2] = p2[2];
       }
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[0]);
+      //gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i+1%2]);
       gl.clear(gl.COLOR_BUFFER_BIT);
       pingpong = 0;
     }
+    xi = e.layerX;
+    yi = e.layerY;
   }, false);
   element.addEventListener("mouseup", function(){
-    flag = 0;
+    clear = 0;
   }, false);
 }
 
