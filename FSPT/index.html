@@ -125,7 +125,7 @@
           }else{
             float c = dot(ray.dir,-result.normal);
             vec3 ref = normalize(sr*ray.dir + (sr*c - sqrt(1.0 - sr*sr*(1.0 - c*c)))*result.normal);
-            result.pos = ref*dot(ref,result.normal)*radius*2.0 + result.pos;
+            result.pos = ref*dot(ref,-result.normal)*radius*2.0 + result.pos;
             result.dir = reflect(-ray.dir,ref);
           }
           result.reflectance = vec3(1);
