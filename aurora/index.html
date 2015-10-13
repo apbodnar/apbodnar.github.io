@@ -4,13 +4,12 @@
 <head>
 <title>Aurora</title>
 
-<script type="text/javascript" src="gl-matrix.js"></script>
-<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="gl-matrix-min.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
   precision mediump float;
-  
-  uniform float tick; 
+
+  uniform float tick;
   uniform float osz; //also serves as a seed for bad noise
 
   varying vec4 coord;
@@ -18,11 +17,11 @@
     float x = coord.x;
     float y = coord.y;
     float z = coord.z;
-      
+
     float xr_intensity = sin(x/18.3457+tick/4848.0+osz*9.28);
     float xg_intensity = sin(x/20.3457-tick/3025.0+osz*6.28);//sin(10.0*coord.x);
     float xb_intensity = sin(x/15.52+tick/2000.0+osz*7.28);
-    
+
     float perturb = (sin(x*41.0 - tick/1932.0) + cos(66.8658176*x+tick/800.0))/4.0 + 1.5;
     float y_intensity = ((pow(1.0-y,2.0) - pow(1.0-y,3.0)) / 0.15) * perturb;
 
@@ -39,7 +38,7 @@
   precision mediump float;
   attribute vec3 aVertexPosition;
   uniform float tick;
-  
+
   uniform mat4 PM;
   uniform mat4 R;
 
@@ -65,7 +64,7 @@
 
 
 <body onload="webGLStart();" style="margin:0;">
-    
+
     <canvas id="aurora_canvas" ></canvas>
     <img src='sil.png' style="height:100%; width:110%; z-index:9001; position:fixed; top:0px; left:-10px;"><img>
 </body>

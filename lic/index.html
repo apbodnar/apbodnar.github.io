@@ -4,57 +4,57 @@
 <head>
 <title>WebGL LIC</title>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-
+<style>
+  body{ text-align: center; margin: 0; overflow: hidden; background: #000;}
+  canvas{ border: none; }
+</style>
 <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
 <script type="text/javascript" src="webgl-utils.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
-    precision mediump float;
+  precision mediump float;
 	varying vec4 coords;
-	
+
 	uniform sampler2D uSampler;
-	uniform float tick; 
-	uniform float a[12]; 
+	uniform float tick;
+	uniform float a[12];
 	uniform vec4 rv;
 	uniform vec4 rs;
-	
+
+  const float dt = 1.0/512.0;
+  const int samples = 200;
+  const float scale = 1.0/float(samples);
+
 	vec2 line_func(vec2 p){
 		float x = p.x;
 		float y = p.y;
-		
-		return vec2(sin(sin(rs.x*tick/250.0)*100.0*rv.x*x+sin(rs.y*tick/250.0)*100.0*rv.y*y),
-					cos(sin(rs.z*tick/250.0)*100.0*rv.z*y+sin(rs.w*tick/250.0)*100.0*rv.w*x));
-		//float x1 = a[0]+a[1]*x+a[2]*x*x+a[3]*x*y+a[4]*y+a[5]*y*y;
-		//float y1 = a[6]+a[7]*x+a[8]*x*x+a[9]*x*y+a[10]*y+a[11]*y*y;
-		//return vec2(-y*sin(tick/100.0),x);
-		//return vec2(0.1,sin(x*x*50.0+y*y*50.0));
+
+		return vec2(sin(sin(rs.x*tick*0.004)*100.0*rv.x*x+sin(rs.y*tick*0.004)*100.0*rv.y*y),
+					cos(sin(rs.z*tick*0.004)*100.0*rv.z*y+sin(rs.w*tick*0.004)*100.0*rv.w*x));
 	}
-	
+
 	vec3 vpow(vec3 v,float p){
 		return vec3(pow(v.x,p),pow(v.y,p),pow(v.z,p));
 	}
-	
-    void main(void) {
-		float dt = 1.0/(512.0);
+
+  void main(void) {
 		vec3 color = vec3(0,0,0);
 		vec2 p = vec2(coords.x,coords.y);
-		for(int i=0; i<500; i++){
+		for(int i=0; i<samples; i++){
 			p += dt*(line_func(p));
-			color += texture2D(uSampler, p/2.0 + 1.0).xyz;
+			color += texture2D(uSampler, p*0.5 +0.5).xyz * scale;
 		}
-		//gl_FragColor = vec4(normalize(vpow(color, 2.0)),1);;
-		gl_FragColor = vec4(normalize(vpow(color, 2.0)),1);;
-        //gl_FragColor = abs(sin(coords)) + texture2D(uSampler, vec2(coords.x, coords.y));
-    }
+		gl_FragColor = vec4(color,1);
+  }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
-    attribute vec3 aVertexPosition;
+  attribute vec3 aVertexPosition;
 	varying vec4 coords;
 
     void main(void) {
-        gl_Position = vec4(aVertexPosition, 1.0);
-		coords = vec4(aVertexPosition, 1.0);
+      gl_Position = vec4(aVertexPosition, 1.0);
+		  coords = vec4(aVertexPosition, 1.0);
     }
 </script>
 
@@ -63,7 +63,7 @@
 
 
 <body onload="webGLStart();">
-    <canvas id="LICcanvas" style="border: none;" width="512" height="512"></canvas>
+    <canvas id="LICcanvas" style="border: none;"></canvas>
 </body>
 
 </html>

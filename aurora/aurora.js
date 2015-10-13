@@ -58,7 +58,7 @@ function getShader(gl, id) {
     return null;
   }
   return shader;
-  
+
 }
 
 var shaderProgram;
@@ -79,7 +79,7 @@ function initShaders() {
   gl.useProgram(shaderProgram);
   shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-  
+
   shaderProgram.tickUniform = gl.getUniformLocation(shaderProgram, "tick");
   shaderProgram.crunchUniform = gl.getUniformLocation(shaderProgram, "crunch");
   shaderProgram.countUniform = gl.getUniformLocation(shaderProgram, "num_quads");
@@ -152,13 +152,13 @@ function drawScene() {
 }
 
 function tick() {
-  requestAnimFrame(tick);
+  requestAnimationFrame(tick);
   drawScene();
   animate();
 }
 
 function webGLStart() {
-  
+
   var canvas = document.getElementById("aurora_canvas");
   canvas.width = screen.width;
   canvas.height= screen.height;
