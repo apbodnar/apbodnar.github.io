@@ -1,15 +1,10 @@
 var gl;
 
 function initGL(canvas) {
-  try {
-    gl = canvas.getContext("experimental-webgl");
-    gl.viewportWidth = canvas.width;
-    gl.viewportHeight = canvas.height;
-  } catch (e) {
-  }
-  if (!gl) {
-    console.log("Could not initialise WebGL, sorry :-(");
-  }
+  gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  gl.viewportWidth = canvas.width = window.innerWidth;
+  gl.viewportHeight = canvas.height = window.innerHeight;
+  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 }
 
 function getShader(gl, id) {
@@ -67,7 +62,7 @@ function initShaders() {
 
   shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexTrans");
   gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
-  
+
   shaderProgram.tickUniform = gl.getUniformLocation(shaderProgram, "tick");
   shaderProgram.countUniform = gl.getUniformLocation(shaderProgram, "count");
   shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
@@ -76,9 +71,10 @@ function initShaders() {
 function handleTextureLoaded(image, texture) {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR ) ;
+  gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR ) ;
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
@@ -86,12 +82,13 @@ function initTexture() {
   cubeTexture = gl.createTexture();
   cubeImage = new Image();
   cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
-  cubeImage.src = "flower.png";
+  cubeImage.src = "matterhorn.jpg";
 }
 
 var squareVertexPositionBuffer;
 var squareVertexTransBuffer;
-var num_triangles;
+var num_vertices;
+var max_vertices;
 
 function initBuffers() {
   squareVertexPositionBuffer = gl.createBuffer();
@@ -105,8 +102,8 @@ function initBuffers() {
   -1.0,  -1.0, 0.0
   ];
 
-  var vbo = new Float32Array(num_triangles*2*9);
-  for(var i=0; i<num_triangles; i++){
+  var vbo = new Float32Array(max_vertices*2*9);
+  for(var i=0; i<max_vertices; i++){
     for(var j=0; j<18; j++){
       vbo[i*18+j] = vertices[j];
     }
@@ -114,13 +111,13 @@ function initBuffers() {
   gl.bufferData(gl.ARRAY_BUFFER, vbo, gl.STATIC_DRAW);
 
   squareVertexPositionBuffer.itemSize = 3;
-  squareVertexPositionBuffer.numItems = 3*num_triangles*2;
+  squareVertexPositionBuffer.numItems = 3*max_vertices*2;
 
   squareVertexTransBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexTransBuffer);
 
   var trans = [];
-  for (var i=0; i < num_triangles; i++) {
+  for (var i=0; i < max_vertices; i++) {
 	  var c = [2*(Math.random()-0.5),2*( Math.random()-0.5)]
 	  for(var j=0; j<6; j++){
 		trans.push(c[0]);
@@ -131,7 +128,7 @@ function initBuffers() {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(trans), gl.STATIC_DRAW);
   squareVertexTransBuffer.itemSize = 2;
-  squareVertexTransBuffer.numItems = 3*num_triangles*2;
+  squareVertexTransBuffer.numItems = 3*max_vertices*2;
 }
 
 var lastTime = 0;
@@ -160,19 +157,29 @@ function drawScene() {
   gl.uniform1i(shaderProgram.samplerUniform,0);
 
   gl.uniform1f(shaderProgram.tickUniform, elapsed);
-  gl.uniform1i(shaderProgram.countUniform, num_triangles);
+  gl.uniform1i(shaderProgram.countUniform, num_vertices);
 
-  gl.drawArrays(gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems);
+  gl.drawArrays(gl.TRIANGLES, 0, num_vertices % max_vertices);
 }
 
 function tick() {
-  requestAnimFrame(tick);
+  requestAnimationFrame(tick);
   drawScene();
   animate();
+  num_vertices += 12;
+  num_vertices %= max_vertices;
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : parseInt(decodeURIComponent(results[1].replace(/\+/g, " ")));
 }
 
 function webGLStart() {
-  num_triangles = parseInt(document.getElementById('sites').value);
+  num_vertices = 6;//parseInt(document.getElementById('sites').value);
+  max_vertices = getParameterByName("verts") || 60000;
   var canvas = document.getElementById("voronoi_canvas");
   initGL(canvas);
   initShaders();
@@ -185,3 +192,6 @@ function webGLStart() {
   tick();
   //drawScene();
 }
+
+webGLStart()
+;

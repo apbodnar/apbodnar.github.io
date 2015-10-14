@@ -4,101 +4,93 @@
 <head>
 <title>Voronoi</title>
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-
+<style>
+  body{ text-align: center; margin: 0; overflow: hidden; background: #000;}
+  canvas{ border: none; }
+</style>
 <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
-<script type="text/javascript" src="webgl-utils.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
     precision highp float;
-  
-  uniform float tick; 
-  uniform sampler2D uSampler; 
-  
-  varying vec2 tcoord;
-  varying vec4 rc;
-  
-    void main(void) {
-    //gl_FragColor = vec4(abs(color),1);
-    gl_FragColor = texture2D(uSampler, tcoord/2.0 - vec2(0.5, 0.5));
-    //gl_FragColor = rc;
-    }
+
+  uniform float tick;
+
+  varying vec4 color;
+
+  void main(void) {
+    gl_FragColor = color;
+  }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
   precision highp float;
   attribute vec3 aVertexPosition;
   attribute vec2 aVertexTrans;
-  
-  varying vec2 tcoord;
-  
+
+  varying vec4 color;
+
+  uniform sampler2D uSampler;
   uniform float tick;
   uniform int count;
-  float zscale = 2.0;
+  float zscale = 0.5;
   float parabolZ(vec2 p){
-    return ((p.x*p.x)+(p.y*p.y))/zscale;
+    return ((p.x*p.x)+(p.y*p.y))*zscale;
   }
-  
+
   vec3 gradient(vec2 p){
-    return vec3(2.0*p.x/zscale,2.0*p.y/zscale,1.0);
+    return vec3(2.0*p.x*zscale,2.0*p.y*zscale,1.0);
   }
-  
+
   float getAngle(vec3 a){
     vec3 b = vec3(0.0,0.0,1.0);
     return atan(length(cross(a,b)),a.z);
   }
-  
-  mat4 rZ(float a) {
+
+  mat2 rZ(float a) {
     float c = cos(a);
     float s = sin(a);
-    return  mat4(
-      c,    -s,   0.0,  0.0,
-      s,    c,    0.0,  0.0,
-      0.0,  0.0,  1.0,  0.0,
-      0.0,  0.0,  0.0,  1.0
+    return  mat2(
+      c,    -s,
+      s,    c
     );
   }
-  
-  mat4 rotationMatrix(vec3 axis, float angle){ //arbitrary axis rotation courtesy neil mendoza
+
+  mat3 rotationMatrix(vec3 axis, float angle){ //arbitrary axis rotation courtesy neil mendoza
     axis = normalize(axis);
     float s = sin(angle);
     float c = cos(angle);
     float oc = 1.0 - c;
-    return mat4(
-        oc * axis.x * axis.x + c         ,  oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-        oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-        oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-        0.0,                                0.0,                                0.0,                                1.0
+    return mat3(
+        oc * axis.x * axis.x + c         ,  oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
+        oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
+        oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c
       );
   }
-  
-  mat4 netR(vec3 t){
+
+  mat3 netR(vec3 t){
     vec3 axis = cross(vec3(0,0,1),t);
     float a = getAngle(t);
     return rotationMatrix(axis, a);
   }
-  
+
   void main(void) {
     float PI = 3.14159265358979323846264;
     float L = length(aVertexTrans);
-    vec4 rTrans = vec4(aVertexTrans,0,0) * rZ(cos(2000.0*L)*tick/6000.0/L);
-    vec3 grad = (gradient(rTrans.xy));
-    mat4 r = netR(grad);
-    vec4 vTrans = vec4(rTrans.xy,-parabolZ(rTrans.xy),0);
-    tcoord = vTrans.xy;
-        gl_Position = vec4((vec4(15.0/sqrt(float(count))*aVertexPosition, 0.0) * r + vTrans).xyz,1.0) + vec4(0,0,0.0,0);
+    vec2 rTrans = aVertexTrans * rZ(cos(20000.0*L)*tick/60000.0/L);
+    vec3 grad = (gradient(rTrans));
+    mat3 r = netR(grad);
+    vec3 vTrans = vec3(rTrans,-parabolZ(rTrans));
+    color = texture2D(uSampler, vTrans.xy * -0.5 + vec2(0.5));
+    gl_Position = vec4((8.0/sqrt(float(count))*aVertexPosition) * r + vTrans,1.0);
   }
 </script>
 
-<script src="voronoi.js" type="text/javascript"></script>
 </head>
 
 
 <body>
-  <form>
-    Number of sites: <input type="text" id="sites" value="500">
-    <input type="button" value="Go!" onclick="webGLStart()">
-  </form>
     <canvas id="voronoi_canvas" style="border: solid; color: black; border-width: 1px;" width="800" height="800"></canvas>
+    <script src="voronoi.js" type="text/javascript"></script>
 </body>
 
 </html>
