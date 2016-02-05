@@ -78,10 +78,10 @@
           oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c);
   }
 
-  vec3 randomVec(vec3 normal, vec3 pos){
+  vec3 randomVec(vec3 normal, vec3 pos, float exp){
     float r2 = rand(pos.xz+tick_f*0.0194161103873);
     float r1 = rand(pos.xy+tick_f*0.0115572734979)-epsilon;
-    float r = sqrt(r1);
+    float r = pow(r1,exp);
     float theta = 2.0 * M_PI * r2;
     float x = r * cos(theta);
     float y = r * sin(theta);
@@ -116,9 +116,22 @@
         result.emmittance = s.attrs.z * s.color;
         result.index = i;
         if( int(s.material.z) == 0 ){ //diffuse
-          result.dir = randomVec(result.normal, result.pos);
+          result.dir = randomVec(result.normal, result.pos, 0.5);
           result.reflectance = s.color;
-        } else if( int(s.material.z) == 1 ){ //transmissive
+        } else if( int(s.material.z) == 1 ){ //specular
+          float dh = 1.0 - dot(-ray.dir,result.normal);
+          float re = r0 + (1.0 - r0)*dh*dh*dh*dh*dh;
+          if(rand(result.pos.xy + tick_f*0.0017839) < re){
+            result.dir = reflect(ray.dir, result.normal);
+          }else{
+            result.normal = randomVec(result.normal, result.pos, 3.0);
+            result.dir = reflect(ray.dir,result.normal);
+            result.reflectance = s.color;
+            if(dot(result.dir,result.normal) < 0.0){
+              result.reflectance = s.color * 0.5;
+            }
+          }
+        } else if( int(s.material.z) == 2 ){ //transmissive
           float dh = 1.0 - dot(-ray.dir,result.normal);
           float re = r0 + (1.0 - r0)*dh*dh*dh*dh*dh;
           if(rand(result.pos.xy + tick_f*0.0017839) < re){
