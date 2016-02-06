@@ -74,7 +74,7 @@ function initPrimitives(){
   spheres.push( new Sphere([-1e3-1,0,0],[1e3,0.9,0.0],[0.2,1.0,0.2],[1.0,0,0]));
   spheres.push( new Sphere([0,0,-1e3]  ,[1e3,0.9,0.0],[1.0,1.0,1.0],[1.0,0,0]));
   //lights
-  spheres.push( new Sphere([0,10.97,1],[10,0.0,8.0],[1,1,1],[5.0,0,0]));
+  spheres.push( new Sphere([0,10.98,1],[10,0.0,30.0],[1,1,1],[5.0,0,0]));
   staticCount = spheres.length;
   //spheres.push( new Sphere([0,-1,1],[0.25,1.0,8.0],[0.9,0.5,0.1],[5.0,0,0]));
   //spheres.push( new Sphere([0,1,1],[0.25,1.0,8.0],[0.1,0.5,0.9],[5.0,0,0]));
@@ -84,7 +84,7 @@ function initPrimitives(){
     spheres.push(new Sphere([(2*rn()-1)*(1-r),(2*rn()-1)*(1-r),(2-r*2)*rn()+r],
                             [r,0.85,0.0],
                             [rn(),rn(),rn()],
-                            [1.0,rn()*4,rn()*3]));
+                            [1.0,rn()*20,rn()*3]));
   }
 
   for(var i=0; i< spheres.length; i++){

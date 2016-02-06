@@ -55,7 +55,7 @@
     float a = 12.9898;
     float b = 78.233;
     float c = 43758.5453;
-    float dt= dot(co ,vec2(a,b));
+    float dt= dot(co ,vec2(a,b) + tick_f*0.0194161103873);
     float sn= mod(dt,M_PI);
     return fract(sin(sn) * c);
   }
@@ -76,8 +76,8 @@
   }
 
   vec3 randomVec(vec3 normal, vec3 origin, float exp){
-    float r2 = rand(origin.xz+tick_f*0.0194161103873);
-    float r1 = rand(origin.xy+tick_f*0.0115572734979)-epsilon;
+    float r2 = rand(origin.xz);
+    float r1 = rand(origin.xy)-epsilon;
     float r = pow(r1,exp);
     float theta = 2.0 * M_PI * r2;
     float x = r * cos(theta);
@@ -99,7 +99,7 @@
     result.ray.origin = ray.dir*t + ray.origin;
     vec3 normal = normalize(result.ray.origin - s.origin);
     result.index = i;
-    normal = randomVec(normal, result.ray.origin, 2.0);
+    normal = randomVec(normal, result.ray.origin, s.material.y);
     result.ray.dir = reflect(ray.dir,normal);
     result.reflectance = vec3(0.8313,0.6863,0.2157);
     if(dot(result.ray.dir,normal) < 0.0){
@@ -126,7 +126,7 @@
     result.index = i;
     float dh = 1.0 - dot(-ray.dir,normal);
     float re = r0 + (1.0 - r0)*dh*dh*dh*dh*dh;
-    if(rand(result.ray.origin.xy + tick_f*0.0017839) < re){
+    if(rand(result.ray.origin.xy) < re){
       result.ray.dir = reflect(ray.dir, normal);
     }else{
       float c = dot(ray.dir,-normal);
@@ -161,9 +161,10 @@
   void main(void) {
     vec3 tcolor = texture2D(fbTex,coords*0.5 + 0.5).rgb;
     if(mode == 0){
-      vec2 dof = vec2((rand(coords-tick_f*0.02571)+0.5)*0.002,
-                      (rand(coords.yx+tick_f*0.005831)+0.5)*0.002);
-      vec3 origin = vec3(coords.x*dims.x/dims.y + dof.x,coords.y + dof.y,0);
+      float inv_dim = 1.0 / dims.x;
+      vec2 dof = vec2(rand(coords)*inv_dim,
+                      rand(coords.yx)*inv_dim);
+      vec3 origin = vec3(coords.x*dims.x*inv_dim + dof.x,coords.y + dof.y,0);
       Ray ray = Ray(origin,normalize(origin - eye));
       int index = -1;
       vec3 color = vec3(0,0,0);
