@@ -99,11 +99,13 @@
     result.ray.origin = ray.dir*t + ray.origin;
     vec3 normal = normalize(result.ray.origin - s.origin);
     result.index = i;
-    normal = randomVec(normal, result.ray.origin, s.material.y);
+    vec3 span = normalize(vec3((result.ray.origin - s.origin).xz,0));
+    float exp = 5.0*(sin(15.4*dot(span, vec3(1,0,0))+result.ray.origin.y*40.0)+1.1);
+    normal = randomVec(normal, result.ray.origin, exp);
     result.ray.dir = reflect(ray.dir,normal);
     result.reflectance = vec3(0.8313,0.6863,0.2157);
     if(dot(result.ray.dir,normal) < 0.0){
-      result.reflectance *= 0.5;
+      result.ray.dir = -result.ray.dir;
     }
     return result;
   }
@@ -140,12 +142,14 @@
 
   Hit getCollision(Ray ray, int current){
     float t = max_t;
+    int mat = -1;
     Hit result;
     for(int i=0; i<sphereCount; i++){
       Sphere s = Sphere(spherePositions[i],sphereAttrs[i],sphereColors[i],sphereMats[i]);
       float nt = checkSphereCollision(ray,s);
       if(nt < t && nt > 0.0 && current != i){
         t = nt;
+        mat = int(s.material.z);
         if( int(s.material.z) == 0 ){ //diffuse
           result = getLambertian(i, t, ray,s);
         } else if( int(s.material.z) == 1 ){ //specular
@@ -175,12 +179,14 @@
       Hit r3 = getCollision(r2.ray,r2.index);
       Hit r4 = getCollision(r3.ray,r3.index);
       Hit r5 = getCollision(r4.ray,r4.index);
+      Hit r6 = getCollision(r4.ray,r4.index);
       color = (r0.emmittance + r0.reflectance *
               (r1.emmittance + r1.reflectance *
               (r2.emmittance + r2.reflectance *
               (r3.emmittance + r3.reflectance *
               (r4.emmittance + r4.reflectance *
-              (r5.emmittance))))));
+              (r5.emmittance + r5.reflectance *
+              (r6.emmittance)))))));
       color = pow(color,vec3(gamma));
 
       gl_FragColor = vec4((color + (tcolor * tick_f))/(tick_f+1.0),1.0);
