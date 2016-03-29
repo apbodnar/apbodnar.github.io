@@ -99,9 +99,7 @@
     result.ray.origin = ray.dir*t + ray.origin;
     vec3 normal = normalize(result.ray.origin - s.origin);
     result.index = i;
-    vec3 span = normalize(vec3((result.ray.origin - s.origin).xz,0));
-    float exp = 5.0*(sin(15.4*dot(span, vec3(1,0,0))+result.ray.origin.y*40.0)+1.1);
-    normal = randomVec(normal, result.ray.origin, exp);
+    normal = randomVec(normal, result.ray.origin, s.material.y);
     result.ray.dir = reflect(ray.dir,normal);
     result.reflectance = vec3(0.8313,0.6863,0.2157);
     if(dot(result.ray.dir,normal) < 0.0){
