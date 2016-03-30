@@ -3,22 +3,24 @@
   <head>
     <style>
       body{
-        color: black;
+        color: white;
         font-family: Arial;
-        background-color: #ddd;
+        background-color: #222;
         text-align: center;
       }
-      a{ font-size: 1.5em; text-decoration: none; }
-      iframe{ border: none; margin: 8px; width:600px; height:400px; }
+      a{ font-size: 1.5em; text-decoration: none; color: white; }
+      iframe{ border: none; margin: 8px; width:600px; height:400px; border-radius: 2px; }
       div{display: inline-block;}
     </style>
   </head>
   <body>
-    <h1>Adam's Random Fun Stuff</h1>
-    <p>Hover over the sample to view and interact with them! Some WebGL stuff requires Chrome and hardware support for the <code>OES_texture_float</code> extension</p>
+    <span class="desc">
+      <h1>Adam's Random Fun Stuff</h1>
+      <p>Hover over the sample to view and interact with them! Some WebGL stuff requires Chrome and hardware support for the <code>OES_texture_float</code> extension. Most use random starting conditions; refresh for more interesting results.</p>
+    </span>
     <span>
       <div>
-        <a href="/FSPT/index.html">Path Tracer: Drag balls!</a><br>
+        <a href="/FSPT/index.html">Path Tracer | Drag balls!</a><br>
         <iframe src="/FSPT/index.html" ></iframe>
       </div>
       <div>
@@ -48,7 +50,7 @@
     </span>
     <span>
       <div>
-        <a href="/perturbator/index.html">Blob: Type something!</a><br>
+        <a href="/perturbator/index.html">Blob | Type something!</a><br>
         <iframe src="/perturbator/index.html"></iframe>
       </div>
     </span>
