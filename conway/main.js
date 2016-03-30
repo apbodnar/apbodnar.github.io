@@ -6,7 +6,7 @@ function Conway(){
   var textures = [];
   var framebuffers = [];
   var pingpong = 0;
-  var scale = 2;
+  var scale = 1;
   var active = false;
 
   var paths = [
