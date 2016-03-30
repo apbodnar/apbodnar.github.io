@@ -8,11 +8,7 @@ var time = 0;
 var dt = 0.03;
 var ground = -6;
 
-function spawn(){
-	
-}
-
-console.log("Jeanette is the purtiest girl I done ever seen");
+var active = false;
 
 function move(){
 	calcForce();
@@ -40,7 +36,7 @@ function integrate_euler(node){
 	var p = node.p;
 	var v = node.v;
 	var a = vec3.scale(vec3.create(),node.a,1/m);
-	
+
 	var damper = 1-Math.atan(vec3.length(v)/500)/(Math.PI/2); //eyeballin' it with homemade damper
 	//vec3.add(v,v,vec3.scale(vec3.create,vec3.add(a,a,[0,Math.sin(p[1]),0]),dt));
 	vec3.add(v,v,vec3.scale(vec3.create,a,dt));
@@ -77,7 +73,7 @@ function checkCollision(node){
 		node.v[2] *= 0.9;
 		node.v[1] *= 0.9;
 		node.a[1] += (node.p[1] - ground)*-400 + (-gravity*mass);
-		
+
 	}
 }
 
@@ -99,14 +95,11 @@ function calcNodeVsEnvironmentForce(){
 	}
 }
 
-function addSegmentMotives(id, node, axis){
-
-}
 
 function getEquilibriumAngle(){
 	for(var i=0; i<crawler.segment_ids.length; i++){
 		for(var j=0; j<crawler.segment_ids[i].length; j++){
-			
+
 		}
 	}
 }
@@ -126,7 +119,7 @@ function calcSegmentMotive(){
 			vec3.normalize(f_dir,f_dir);
 			vec3.scale(f_dir,f_dir,strength*Math.sin(time/1000/period+offset));
 			var a = crawler.chromosome.segments[id].end.a;
-			vec3.add(a,a,f_dir);	
+			vec3.add(a,a,f_dir);
 		}
 	}
 }
@@ -147,7 +140,7 @@ function calcPosition(){
 			integrate_euler(end);
 		}
 	}
-	
+
 	//console.log(crawler.core.a_origin);
 }
 
@@ -163,16 +156,24 @@ function resetForce(){
 }
 
 function startSim(){
+	window.addEventListener("mouseover",function(){ active = true; })
+  window.addEventListener("mouseout",function(){ active = false; })
 	crawler = new Crawler();
-	console.log(crawler);
 	canvas = document.getElementById("c");
 	renderer = new Renderer(canvas);
+	draw();
 	animate();
+}
+
+function draw(){
+	move();
+	renderer.drawCrawler(crawler,ground);
+	time += dt;
 }
 
 function animate(){
 	window.requestAnimationFrame(animate);
-	move();
-	renderer.drawCrawler(crawler,ground);
-	time += dt;
+	if(active){
+		draw();
+	}
 };

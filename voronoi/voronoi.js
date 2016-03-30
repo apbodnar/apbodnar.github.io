@@ -1,4 +1,5 @@
 var gl;
+var active = false;
 
 function initGL(canvas) {
   gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -162,12 +163,18 @@ function drawScene() {
   gl.drawArrays(gl.TRIANGLES, 0, num_vertices % max_vertices);
 }
 
-function tick() {
-  requestAnimationFrame(tick);
+function draw(){
   drawScene();
   animate();
   num_vertices += 12;
   num_vertices %= max_vertices;
+}
+
+function tick() {
+  requestAnimationFrame(tick);
+  if(active){
+    draw()
+  }
 }
 
 function getParameterByName(name) {
@@ -178,6 +185,8 @@ function getParameterByName(name) {
 }
 
 function webGLStart() {
+  window.addEventListener("mouseover",function(){ active = true; })
+  window.addEventListener("mouseout",function(){ active = false; })
   num_vertices = 6;//parseInt(document.getElementById('sites').value);
   max_vertices = getParameterByName("verts") || 60000;
   var canvas = document.getElementById("voronoi_canvas");
@@ -188,7 +197,7 @@ function webGLStart() {
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
-
+  draw();
   tick();
   //drawScene();
 }

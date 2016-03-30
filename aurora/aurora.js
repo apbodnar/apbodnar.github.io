@@ -6,10 +6,11 @@ var num_strips = 7;
 var crunch = 0.06;
 var offsets = [{}];
 var persp = mat4.create();
-mat4.perspective(persp,90.0, screen.width/screen.height, 1.0, 15.0);
+mat4.perspective(persp,90.0, window.innerWidth/window.innerHeight, 1.0, 15.0);
 var rotation = mat4.create();
 mat4.rotateX(rotation, rotation, -0.1);
 mat4.translate(rotation, rotation, [0,2,-3.0]);
+var active = false;
 
 var squareVertexPositionBuffer = [num_strips];
 var squareVertexTransBuffer;
@@ -116,7 +117,6 @@ function initBuffers() {
 		squareVertexPositionBuffer[i].itemSize = 3;
 		squareVertexPositionBuffer[i].numItems = 2*num_quads+2;
 	}
-	console.log(squareVertexPositionBuffer.length);
 }
 
 var lastTime = 0;
@@ -153,15 +153,19 @@ function drawScene() {
 
 function tick() {
   requestAnimationFrame(tick);
-  drawScene();
-  animate();
+  if(active){
+    drawScene();
+    animate();
+  }
 }
 
 function webGLStart() {
+  window.addEventListener("mouseover",function(){ active = true; })
+  window.addEventListener("mouseout",function(){ active = false; })
 
   var canvas = document.getElementById("aurora_canvas");
-  canvas.width = screen.width;
-  canvas.height= screen.height;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   initGL(canvas);
   initShaders();
   initBuffers();
@@ -170,5 +174,7 @@ function webGLStart() {
   gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+  drawScene();
+  animate();
   tick();
 }

@@ -1,4 +1,5 @@
 var gl;
+var active = false;
 
 function initGL(canvas) {
   gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -148,11 +149,15 @@ function drawScene() {
 
 function tick() {
 	requestAnimationFrame(tick);
-	drawScene();
+    if(active){
+        drawScene();
+    }
 }
 
 
 function webGLStart() {
+    window.addEventListener("mouseover",function(){ active = true; })
+    window.addEventListener("mouseout",function(){ active = false; })
     var canvas = document.getElementById("LICcanvas");
     initGL(canvas);
     initShaders();
@@ -161,6 +166,6 @@ function webGLStart() {
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
-
+    drawScene();
 	tick();
 }

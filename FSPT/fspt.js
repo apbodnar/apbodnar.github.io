@@ -15,6 +15,7 @@ var pingpong = 0;
 var clear = 0;
 var max_t = 1000000;
 var staticCount = 0;
+var active = false;
 
 function initGL(canvas) {
   gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -259,14 +260,18 @@ function drawScene(i){
 
 function tick() {
   requestAnimationFrame(tick);
-  pingpong++;
-  drawScene(pingpong);
-  if(!(pingpong % 1000)){
-    console.log(pingpong);
+  if(active){
+    pingpong++;
+    drawScene(pingpong);
+    if(!(pingpong % 1000)){
+      console.log(pingpong);
+    }
   }
 }
 
 function webGLStart() {
+  window.addEventListener("mouseover",function(){ active = true; })
+  window.addEventListener("mouseout",function(){ active = false; })
   var canvas = document.getElementById("trace");
   initGL(canvas);
   initShaders();

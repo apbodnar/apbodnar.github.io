@@ -7,6 +7,7 @@ function Conway(){
   var framebuffers = [];
   var pingpong = 0;
   var scale = 2;
+  var active = false;
 
   var paths = [
     "shader/conway.vs",
@@ -171,12 +172,16 @@ function Conway(){
 
   function tick() {
     requestAnimationFrame(tick);
-    pingpong++;
-    callConway(pingpong);
-    callDraw(pingpong);
+    if(active){
+      pingpong++;
+      callConway(pingpong);
+      callDraw(pingpong);
+    }
   }
 
   function start(res) {
+    window.addEventListener("mouseover",function(){ active = true; })
+    window.addEventListener("mouseout",function(){ active = false; })
     assets = res;
     var canvas = document.getElementById("trace");
     initGL(canvas);

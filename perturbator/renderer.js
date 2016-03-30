@@ -19,6 +19,8 @@ var gl,
 	text = "type",
 	warp = new Float32Array(10);
 
+var active = false;
+
 var char_map = {
 	a:27,b:26,c:25,d:24,e:23,f:22,g:21,h:20,i:19,j:18,k:17,l:16,m:15,
 	n:14,o: 0,p: 1,q: 2,r: 3,s: 4,t: 5,u: 6,v: 7,w: 8,x: 9,y:10,z:11
@@ -155,6 +157,8 @@ function start(){
 }
 
 function initGL() {
+	window.addEventListener("mouseover",function(){ active = true; })
+  window.addEventListener("mouseout",function(){ active = false; })
 	var canvas = document.getElementById("c"),
 		input = document.getElementById("user");
 	gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -248,6 +252,7 @@ function initRenderer(){
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
 	mat4.perspective(PM, 45*(Math.PI/180), gl.viewportWidth / gl.viewportHeight, 0.1, 200.0);
+	draw();
 	animate();
 }
 
@@ -300,7 +305,9 @@ function draw(){
 
 function animate(){
 	window.requestAnimationFrame(animate);
-	draw();
-	time++;
+	if(active){
+		draw();
+		time++;
+	}
 };
 
