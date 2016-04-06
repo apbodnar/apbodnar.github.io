@@ -274,7 +274,7 @@ function drawBlob(){
 	gl.uniform1f(blob_program.timeUniform, time);
 	gl.uniform1i(blob_program.vmodeUniform, vmode);
 	gl.uniform1i(blob_program.fmodeUniform, fmode);
-	gl.drawElements(gl.TRIANGLES,blob_indices.length, gl.UNSIGNED_SHORT, 0);
+	//gl.drawElements(gl.TRIANGLES,blob_indices.length, gl.UNSIGNED_SHORT, 0);
 }
 
 function drawLetters(text, y){
