@@ -182,6 +182,7 @@ function Particles(){
     gl.bindTexture(gl.TEXTURE_2D, textures.position[i%2]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers.velocity[i%2]);
+    gl.viewport(0,0,texDims,texDims);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.quad);
     gl.vertexAttribPointer(program.attributes.quad, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(program.attributes.quad);
@@ -202,6 +203,7 @@ function Particles(){
     gl.bindTexture(gl.TEXTURE_2D, textures.velocity[i%2]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers.position[i%2]);
+    gl.viewport(0,0,texDims,texDims);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.quad);
     gl.vertexAttribPointer(program.attributes.quad, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(program.attributes.quad);
@@ -222,11 +224,9 @@ function Particles(){
     gl.uniform1i(program.uniforms.fbTex, 1);
     gl.uniform2f(program.uniforms.dims, invTexDims, invTexDims);
     gl.uniformMatrix4fv(program.uniforms.perspective, false, perspective);
-
-    //mat4.rotateY(rotation, , pingpong*0.001);
-
     gl.uniformMatrix4fv(program.uniforms.rotation, false, rotation);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0,0,window.innerWidth,window.innerHeight);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures.position[i%2]);
     gl.activeTexture(gl.TEXTURE1);
