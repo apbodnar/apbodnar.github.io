@@ -10,9 +10,10 @@ function Particles(){
   var texDims = 512;
   var invTexDims = 1/texDims;
   var numPoints = texDims*texDims;
-  var perspective = mat4.perspective(mat4.create(), 1.6, window.innerWidth/window.innerHeight, 0.1, 100);
-  var rotation = mat4.create();
-  var indices;
+  var perspective = mat4.perspective(mat4.create(), 1.6, window.innerWidth/window.innerHeight, 0.1, 10);
+  var rotation = mat4.translate(mat4.create(), mat4.create(), [0,0,-3]);
+  var center = new Float32Array([0,0,0]);
+  var active = false;
 
   var paths = [
     "shader/velocity.vs",
@@ -128,21 +129,21 @@ function Particles(){
     var v0 = new Float32Array(numPoints*3);
     var v1 = new Float32Array(numPoints*3);
     for ( var i=0; i<numPoints*3; i+=3 ){
-      v0[i] = 0.0;
-      v0[i+1] = 0.005;
-      v0[i+2] = 0.0;
-    }
-    for ( var i=0; i<numPoints*3; i+=3 ){
-      var r = 1.0,
-          phi = Math.random()*Math.PI*2,
+      var r = Math.random(),
+          phi = Math.random()*Math.PI,
           theta = Math.random()*Math.PI*2;
 
-      v1[i] = Math.cos(phi)*r;
-      v1[i+1] = Math.sin(phi)*r;
-      v1[i+2] = Math.sin(theta)*r;
+      r= 1-r*r;
+      v1[i] = Math.sin(phi)*r*Math.sin(theta)+ 0.5;
+      v1[i+1] = Math.cos(phi)*r + 0.5;
+      v1[i+2] = Math.sin(phi)*r*Math.cos(theta) + 0.5;
+    }
+    for ( var i=0; i<numPoints*3; i+=3 ){
+      v0[i] = 0.0;
+      v0[i+1] = 0.01;
+      v0[i+2] = 0.01;
     }
 
-    indices = createIndices();
     buffers.quad = createQuadBuffer();
     buffers.coords = createCoordBuffer();
     textures.velocity.push(createFloatTexture(v0));
@@ -155,27 +156,13 @@ function Particles(){
     framebuffers.position.push(createFramebuffer(textures.position[1]));
   }
 
-  function createIndices(){
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    var is = [0,1,2,1,2,3];
-    var it = [];
-    for(var i=0;i<numPoints;i++){
-      Array.prototype.push.apply(it,is);
-    }
-
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(it), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    return buffer;
-  }
-
   function initBuffers(){
     initSimBuffer();
   }
 
   function initPrograms(){
     programs.position = initProgram("shader/position",["fbTex","posTex","dims","tick"],["quad"]);
-    programs.velocity = initProgram("shader/velocity",["fbTex","posTex","dims","tick"],["quad"]);
+    programs.velocity = initProgram("shader/velocity",["fbTex","posTex","dims","tick","center"],["quad"]);
     programs.draw = initProgram("shader/draw",["fbTex","imageTex","dims","perspective","rotation"],["coords","quad"]);
   }
 
@@ -188,6 +175,7 @@ function Particles(){
     gl.uniform1i(program.uniforms.posTex, 1);
     gl.uniform1i(program.uniforms.tick, i);
     gl.uniform2f(program.uniforms.dims, invTexDims, invTexDims);
+    gl.uniform3fv(program.uniforms.center, center);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures.velocity[(i+1)%2]);
     gl.activeTexture(gl.TEXTURE1);
@@ -228,14 +216,14 @@ function Particles(){
   function callDraw(i){
     var program = programs.draw;
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR);
+    gl.blendFunc(gl.SRC_COLOR, gl.ONE);
     gl.useProgram(program);
     gl.uniform1i(program.uniforms.posTex, 0);
     gl.uniform1i(program.uniforms.fbTex, 1);
     gl.uniform2f(program.uniforms.dims, invTexDims, invTexDims);
     gl.uniformMatrix4fv(program.uniforms.perspective, false, perspective);
-    mat4.translate(rotation, mat4.create(), [0,0,-3])
-    mat4.rotateY(rotation, rotation, pingpong*0.01);
+
+    //mat4.rotateY(rotation, , pingpong*0.001);
 
     gl.uniformMatrix4fv(program.uniforms.rotation, false, rotation);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -253,35 +241,51 @@ function Particles(){
     gl.drawArrays(gl.TRIANGLES, 0, numPoints*6);
   }
 
-  // function initListeners(){
-  //   var canvas = document.getElementById("trace");
-  //   var xi, yi;
-  //   var index = -1;
-  //   canvas.addEventListener("mousedown", function(e){
-  //     xi = e.layerX;
-  //     yi = e.layerY;
-  //   }, false);
-  //   canvas.addEventListener("mousemove", function(e){
-  //     xi = e.layerX;
-  //     yi = e.layerY;
-  //   }, false);
-  //   canvas.addEventListener("mouseup", function(){
-  //     clear = 0;
-  //     index = -1;
-  //   }, false);
-  // }
+  function initListeners(){
+    var canvas = document.getElementById("trace");
+    var xi, yi;
+    var moving = false;
+    var down = false;
+    canvas.addEventListener("mousedown", function(e){
+      xi = e.layerX;
+      yi = e.layerY;
+      moving = false;
+      down = true;
+    }, false);
+    canvas.addEventListener("mousemove", function(e){
+      if(down){
+        moving = true;
+        mat4.rotateY(rotation, rotation,(e.layerX - xi)*0.01);
+        mat4.rotateX(rotation, rotation,(e.layerY - yi)*0.01);
+        xi = e.layerX;
+        yi = e.layerY;
+      }
+    }, false);
+    canvas.addEventListener("mouseup", function(){
+      down = false;
+      if(!moving){
+        center[0] = 3*(2*xi/canvas.width - 1);
+        center[1] = 3*(-2*yi/canvas.height + 1);
+      }
+    }, false);
+  }
 
   function tick() {
     requestAnimationFrame(tick);
-    pingpong++;
-    callSim(pingpong);
-    callDraw(pingpong);
+    if(active){
+      pingpong++;
+      callSim(pingpong);
+      callDraw(pingpong);
+    }
   }
 
   function start(res) {
+    window.addEventListener("mouseover",function(){ active = true; })
+    window.addEventListener("mouseout",function(){ active = false; })
     assets = res;
     var canvas = document.getElementById("trace");
     initGL(canvas);
+    initListeners();
     initPrograms();
     initBuffers();
     tick();

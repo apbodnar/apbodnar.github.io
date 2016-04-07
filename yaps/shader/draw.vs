@@ -14,7 +14,7 @@ varying vec2 quadCoord;
 
 void main(void) {
   quadCoord = quad.xy;
-  color = abs(normalize(texture2D(fbTex,coords*dims).rgb))*2.0;
+  color = abs(normalize(texture2D(fbTex,coords*dims).rgb));
   vec4 pos = vec4(0.01*quad + (rotation*texture2D(posTex,coords*dims)).xyz,1);
   gl_Position = perspective*pos;
 }
