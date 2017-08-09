@@ -21,14 +21,16 @@ I've tested with FF and Chrome on Windows and Linux with a GTX 1080 and GTX 980
 
 [Bunny](http://apbodnar.github.io/FSPT/index.html?scene=bunny&res=400)
 
-[Bunnies](http://apbodnar.github.io/FSPT/index.html?scene=bunnies&res=400)
-
 [Dolls](http://apbodnar.github.io/FSPT/index.html?scene=wood&res=400)
+
+[Bunnies?](http://apbodnar.github.io/FSPT/index.html?scene=bunnies&res=400)
+
 
 ## Experiments
 
 ![alt text](images/hands.png)
 ![alt text](images/dragbunn.png)
+![alt text](images/dragon.png)
 ![alt text](images/fairy.png)
 ![alt text](images/wood.png)
 ![alt text](images/sib.png)

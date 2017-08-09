@@ -1,45 +1,56 @@
 {
-  "environment": "texture/pano.jpg",
+  "environment": [[0,0,0],[0.2,0.2,0.2]],
   "atlasRes": 2048,
   "props": [
     {
-      "path": "mesh/dragon.obj",
-      "scale": 0.07,
+      "path": "mesh/bunny_big.obj",
+      "scale": 0.18,
       "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [0.4,-0.2,0],
+      "translate": [0.6,-0.2,0],
       "reflectance": [0.9,0.9,0.9],
       "emittance": [0,0,0],
-      "specular": 0.05,
+      "roughness": 0.1,
       "normals": "smooth"
     },
     {
       "path": "mesh/bunny_big.obj",
-      "scale": 0.2,
+      "scale": 0.18,
       "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [-0.4,-0.2,0],
-      "reflectance": [0.9, 0.9, 0.9],
+      "translate": [-0.5,-0.2,0],
+      "reflectance":  [0.9,0.9,0.9],
       "emittance": [0,0,0],
-      "specular": 0.001,
+      "roughness": 0.01,
       "normals": "smooth",
       "metal": true
     },
     {
+      "path": "mesh/bunny_big.obj",
+      "scale": 0.18,
+      "rotate": [{"angle": 0, "axis": [0,0,1]}],
+      "translate": [0.05,-0.2,0],
+      "reflectance":  [0.5,0.5,1],
+      "emittance": [0,0,0],
+      "roughness": 0.4,
+      "normals": "smooth",
+      "diffuse": true
+    },
+    {
       "path": "mesh/top.obj",
-      "scale": 0.4,
+      "scale": 0.5,
       "rotate": [{"angle": 0, "axis": [0,0,1]}],
       "translate": [1,2,1],
-      "reflectance": [0,0,0],
-      "emittance": [100,100,100],
-      "specular": 0.9
+      "reflectance": [1, 0.9764705882352941, 0.7686274509803921],
+      "emittance": [15,15,15],
+      "roughness": 0.9
     },
     {
       "path": "mesh/top.obj",
       "scale": 4,
       "rotate": [{"angle": 3.1415, "axis": [0,0,1]}],
       "translate": [0,-0.3,0],
-      "reflectance": [0.9,0.2,0.4],
+      "reflectance": [1,0.4,0.4],
       "emittance": [0,0,0],
-      "specular": 0.01
+      "roughness": 0.2
     }
   ]
 }
