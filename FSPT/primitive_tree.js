@@ -5,7 +5,6 @@
     function buildTree(triangles) {
       let root = new Node(triangles);
       let split = root.getSplittingAxis();
-      // TODO: Be smarter about sorting
       root.sortOnAxis(split);
       if (root.triangles.length <= maxTris) {
         root.leaf = true;
