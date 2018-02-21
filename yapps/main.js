@@ -1,30 +1,29 @@
 "use strict";
 function Particles(){
-  var gl;
-  var programs = {};
-  var buffers = {};
-  var textures = {position: [], velocity: []};
-  var framebuffers = {position: [], velocity: []};
-  var pingpong = 0;
-  var scale = 1;
-  var texDims = 512;
-  var invTexDims = 1/texDims;
-  var numPoints = texDims*texDims;
-  var perspective = mat4.perspective(mat4.create(), 1.6, window.innerWidth/window.innerHeight, 0.1, 10);
-  var rotation = mat4.translate(mat4.create(), mat4.create(), [0,0,-3]);
-  var center = new Float32Array([0,0,0]);
-  var active = false;
+  let gl;
+  let programs = {};
+  let buffers = {};
+  let textures = {position: [], velocity: []};
+  let simulationFrameBuffers = [];
+  let pingpong = 0;
+  let scale = 1;
+  let texDims = 512;
+  let invTexDims = 1/texDims;
+  let numPoints = texDims*texDims;
+  let perspective = mat4.perspective(mat4.create(), 1.6, window.innerWidth/window.innerHeight, 0.1, 10);
+  let rotation = mat4.translate(mat4.create(), mat4.create(), [0,0,-3]);
+  let center = new Float32Array([0,0,0]);
+  let isFramed = !!window.frameElement;
+  let active = !isFramed;
 
-  var paths = [
-    "shader/velocity.vs",
-    "shader/velocity.fs",
-    "shader/position.vs",
-    "shader/position.fs",
+  let paths = [
+    "shader/simulation.vs",
+    "shader/simulation.fs",
     "shader/draw.vs",
     "shader/draw.fs"
   ];
 
-  var assets = {};
+  let assets = {};
 
   function initGL(canvas) {
     gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -37,18 +36,18 @@ function Particles(){
   }
 
   function getShader(gl, str, id) {
-    var shader = gl.createShader(gl[id]);
+    let shader = gl.createShader(gl[id]);
     gl.shaderSource(shader, str);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      alert(id + gl.getShaderInfoLog(shader));
+      console.log(id, gl.getShaderInfoLog(shader));
       return null;
     }
     return shader;
   }
 
   function createFloatTexture(array) {
-    var t = gl.createTexture();
+    let t = gl.createTexture();
     gl.getExtension('OES_texture_float');
     //gl.getExtension('OES_texture_float_linear');
     gl.bindTexture( gl.TEXTURE_2D, t ) ;
@@ -59,17 +58,24 @@ function Particles(){
     return t;
   }
 
-  function createFramebuffer(tex){
-    var fbo = gl.createFramebuffer();
+  function createFramebuffer(posTex, velTex){
+    let ext = gl.getExtension('WEBGL_draw_buffers');
+    console.log(ext);
+    let fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, posTex, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, velTex, 0);
+    ext.drawBuffersWEBGL([
+      ext.COLOR_ATTACHMENT0_WEBGL, // gl_FragData[0]
+      ext.COLOR_ATTACHMENT1_WEBGL  // gl_FragData[1]
+    ]);
     return fbo;
   }
 
   function initProgram(path, uniforms, attributes) {
-    var fs = getShader(gl, assets[path+".fs"],"FRAGMENT_SHADER");
-    var vs = getShader(gl, assets[path+".vs"],"VERTEX_SHADER");
-    var program = gl.createProgram();
+    let fs = getShader(gl, assets[path+".fs"],"FRAGMENT_SHADER");
+    let vs = getShader(gl, assets[path+".vs"],"VERTEX_SHADER");
+    let program = gl.createProgram();
     program.uniforms = {};
     program.attributes = {};
     gl.attachShader(program, vs);
@@ -87,10 +93,10 @@ function Particles(){
   }
 
   function createQuadBuffer(){
-    var buffer = gl.createBuffer();
+    let buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    var vertices = [];
-    var quad = [
+    let vertices = [];
+    let quad = [
       1.0,  1.0,  0.0,
      -1.0,  1.0,  0.0,
       1.0, -1.0,  0.0,
@@ -98,7 +104,7 @@ function Particles(){
       1.0, -1.0,  0.0,
      -1.0, -1.0,  0.0
     ];
-    for(var i=0;i<numPoints;i++){
+    for(let i=0;i<numPoints;i++){
       Array.prototype.push.apply(vertices,quad);
     }
 
@@ -108,12 +114,12 @@ function Particles(){
   }
 
   function createCoordBuffer(){
-    var buffer = gl.createBuffer();
+    let buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    var vertices = [];
-    for(var i=0;i<texDims;i++){
-      for(var j=0;j<texDims;j++){
-        for(var k=0;k<6;k++){
+    let vertices = [];
+    for(let i=0;i<texDims;i++){
+      for(let j=0;j<texDims;j++){
+        for(let k=0;k<6;k++){
           vertices.push(j,i);
         }
       }
@@ -125,11 +131,11 @@ function Particles(){
   }
 
   function initSimBuffer(){
-    var program = programs.sim;
-    var v0 = new Float32Array(numPoints*3);
-    var v1 = new Float32Array(numPoints*3);
-    for ( var i=0; i<numPoints*3; i+=3 ){
-      var r = Math.random(),
+    let program = programs.sim;
+    let v0 = new Float32Array(numPoints*3);
+    let v1 = new Float32Array(numPoints*3);
+    for ( let i=0; i<numPoints*3; i+=3 ){
+      let r = Math.random(),
           phi = Math.random()*Math.PI,
           theta = Math.random()*Math.PI*2;
 
@@ -138,7 +144,7 @@ function Particles(){
       v1[i+1] = Math.cos(phi)*r + 0.5;
       v1[i+2] = Math.sin(phi)*r*Math.cos(theta) + 0.5;
     }
-    for ( var i=0; i<numPoints*3; i+=3 ){
+    for ( let i=0; i<numPoints*3; i+=3 ){
       v0[i] = 0.0;
       v0[i+1] = 0.01;
       v0[i+2] = 0.01;
@@ -148,12 +154,10 @@ function Particles(){
     buffers.coords = createCoordBuffer();
     textures.velocity.push(createFloatTexture(v0));
     textures.velocity.push(createFloatTexture(v0));
-    framebuffers.velocity.push(createFramebuffer(textures.velocity[0]));
-    framebuffers.velocity.push(createFramebuffer(textures.velocity[1]));
     textures.position.push(createFloatTexture(v1));
     textures.position.push(createFloatTexture(v1));
-    framebuffers.position.push(createFramebuffer(textures.position[0]));
-    framebuffers.position.push(createFramebuffer(textures.position[1]));
+    simulationFrameBuffers.push(createFramebuffer(textures.position[0], textures.velocity[0]));
+    simulationFrameBuffers.push(createFramebuffer(textures.position[1], textures.velocity[1]));
   }
 
   function initBuffers(){
@@ -161,13 +165,13 @@ function Particles(){
   }
 
   function initPrograms(){
-    programs.position = initProgram("shader/position",["fbTex","posTex","dims","tick"],["quad"]);
-    programs.velocity = initProgram("shader/velocity",["fbTex","posTex","dims","tick","center"],["quad"]);
+    let ext = gl.getExtension('WEBGL_draw_buffers');
+    programs.simulation = initProgram("shader/simulation",["fbTex","posTex","dims","tick","center"],["quad"]);
     programs.draw = initProgram("shader/draw",["fbTex","imageTex","dims","perspective","rotation"],["coords","quad"]);
   }
 
-  function callVelocitySim(i){
-    var program = programs.velocity;
+  function callSimulation(i){
+    let program = programs.simulation;
     gl.disable(gl.BLEND);
     gl.useProgram(program);
     gl.uniform1f(program.uniforms.scale, scale);
@@ -179,9 +183,9 @@ function Particles(){
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures.velocity[(i+1)%2]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, textures.position[i%2]);
+    gl.bindTexture(gl.TEXTURE_2D, textures.position[(i+1)%2]);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers.velocity[i%2]);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, simulationFrameBuffers[i%2]);
     gl.viewport(0,0,texDims,texDims);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.quad);
     gl.vertexAttribPointer(program.attributes.quad, 3, gl.FLOAT, false, 0, 0);
@@ -189,34 +193,12 @@ function Particles(){
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
   }
 
-  function callPositionSim(i){
-    var program = programs.position;
-    gl.useProgram(program);
-    gl.uniform1f(program.uniforms.scale, scale);
-    gl.uniform1i(program.uniforms.posTex, 0);
-    gl.uniform1i(program.uniforms.fbTex, 1);
-    gl.uniform1i(program.uniforms.tick, i);
-    gl.uniform2f(program.uniforms.dims, invTexDims, invTexDims);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textures.position[(i+1)%2]);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, textures.velocity[i%2]);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers.position[i%2]);
-    gl.viewport(0,0,texDims,texDims);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.quad);
-    gl.vertexAttribPointer(program.attributes.quad, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(program.attributes.quad);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-  }
-
   function callSim(i){
-    callVelocitySim(i);
-    callPositionSim(i);
+    callSimulation(i);
   }
 
   function callDraw(i){
-    var program = programs.draw;
+    let program = programs.draw;
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_COLOR, gl.ONE);
     gl.useProgram(program);
@@ -242,10 +224,10 @@ function Particles(){
   }
 
   function initListeners(){
-    var canvas = document.getElementById("trace");
-    var xi, yi;
-    var moving = false;
-    var down = false;
+    let canvas = document.getElementById("trace");
+    let xi, yi;
+    let moving = false;
+    let down = false;
     canvas.addEventListener("mousedown", function(e){
       xi = e.layerX;
       yi = e.layerY;
@@ -280,10 +262,10 @@ function Particles(){
   }
 
   function start(res) {
-    window.addEventListener("mouseover",function(){ active = true; })
-    window.addEventListener("mouseout",function(){ active = false; })
+    window.addEventListener("mouseover",function(){ active = true; });
+    window.addEventListener("mouseout",function(){ active = !isFramed; });
     assets = res;
-    var canvas = document.getElementById("trace");
+    let canvas = document.getElementById("trace");
     initGL(canvas);
     initListeners();
     initPrograms();

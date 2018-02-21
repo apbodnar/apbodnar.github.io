@@ -1,6 +1,6 @@
 #version 300 es
 precision highp float;
-const int NUM_BOUNCES = 8;
+const int NUM_BOUNCES = 5;
 const float MAX_T = 100000.0;
 const float n1 = 1.0;
 const float n2 = 1.4;
@@ -8,6 +8,7 @@ const float EPSILON = 0.000001;
 const float sr = n1/n2;
 const float r0 = ((n1 - n2)/(n1 + n2))*((n1 - n2)/(n1 + n2));
 const float M_PI = 3.14159265;
+const float INV_PI = 1.0 / M_PI;
 const uint FROM_PARENT = uint(0);
 const uint FROM_SIBLING = uint(1);
 const uint FROM_CHILD = uint(2);
@@ -22,7 +23,6 @@ uniform vec3 rightMin;
 uniform vec3 leftMax;
 uniform vec3 leftMin;
 uniform vec2 lightRanges[20];
-uniform vec2 randoms[32];
 uniform sampler2D fbTex;
 uniform sampler2D triTex;
 uniform sampler2D bvhTex;
@@ -150,8 +150,8 @@ float rayTriangleIntersect(Ray ray, Triangle tri){
 }
 
 vec2 getAA(){
-  float theta = rand(coords + randoms[1]) * M_PI * 2.0;
-  float sqrt_r = sqrt(rand(coords.yx + randoms[0]));
+  float theta = rand(coords*vec2(0.1245123, 2.231545)) * M_PI * 2.0;
+  float sqrt_r = sqrt(rand(coords.yx*vec2(2.3, 0.87627836)));
   return vec2(sqrt_r * cos(theta), sqrt_r * sin(theta));
 }
 
@@ -368,33 +368,36 @@ float attenuationFactor(Ray ray, Triangle tri, vec3 p, vec3 lightNormal, vec3 no
   vec3 span = ray.origin - p;
   float rr = dot(span, span);
   //magic number is 1 / Tau, the inverted solid angle of a hemisphere
-  return dot(ray.dir, normal) * (a/rr) * dot(lightNormal, normalize(ray.origin - p));
+  return (a/rr) * dot(lightNormal, normalize(ray.origin - p)) * INV_PI;
 }
 
 float albedo(vec3 color){
   return sqrt(dot(vec3(0.299, 0.587, 0.114) * color*color, vec3(1)));
 }
 
-vec3 envColor(vec3 dir){
-  vec2 c = vec2(atan(dir.z, dir.x) / 6.283185, dir.y * - 0.5 + 0.5);
-  return texture(envTex, c).rgb;
+vec3 applyGamma(vec3 color) {
+  return pow(color, vec3(2.2));
 }
 
-vec3 getDirectEmmission(vec3 origin, vec3 normal, vec3 incident, float specular, bool weighted){
+vec3 envColor(vec3 dir){
+  vec2 c = vec2(atan(dir.z, dir.x) / 6.283185, dir.y * - 0.5 + 0.5);
+  return applyGamma(texture(envTex, c).rgb);
+}
+
+vec3 getDirectEmmission(vec3 origin, vec3 normal, inout vec3 lightDir){
   vec3 intensity = vec3(0);
   vec2 range = lightRanges[uint(rand(coords.xy + origin.xy) * numLights)];
   Triangle light = randomLight(origin.xz, range);
   vec3 lightPoint = randomPointOnTriangle(light, origin);
-  vec3 dir = normalize(lightPoint - origin);
-  Ray ray = Ray(origin, dir);
+  lightDir = normalize(lightPoint - origin);
+  Ray ray = Ray(origin, lightDir);
   Hit shadow = traverseTree(ray);
-  float weight = weighted ? ggxWeight(normal, incident, dir, specular) : 1.0;
   // Gross float equality hack
   if(createTriangle(shadow.index).v1 == light.v1){
     Material mat = createMaterial(shadow.index);
     vec3 p = ray.origin + ray.dir * shadow.t;
     vec3 lightNormal = createNormals(shadow.index).n1; // don't use smooth normals for lights
-    intensity += max(weight * mat.emittance * attenuationFactor(ray, light, p, lightNormal, normal) * numLights * ((range.y - range.x) + 1.0), vec3(0));
+    intensity += max(mat.emittance * attenuationFactor(ray, light, p, lightNormal, normal) * numLights, vec3(0));
   }
   return intensity;
 }
@@ -409,32 +412,32 @@ void main(void) {
   Hit result = Hit(MAX_T, -1.0);
   vec3 color = vec3(0);
   int bounces = 0;
-  float directWeight = 1.0;
-  //bool specular = rand(coords.xy * randoms[0]) > 0.5;
   for(int i=0; i < NUM_BOUNCES; ++i){
     result = traverseTree(ray);
     vec3 origin = ray.origin + ray.dir * result.t;
     bounces++;
-    if(result.index < 0.0){ emittance[i] = envColor(ray.dir); break; }
+    if(result.index < 0.0){ reflectance[i] = vec3(1); emittance[i] = envColor(ray.dir); break; }
     Triangle tri = createTriangle(result.index);
     Material mat = createMaterial(result.index);
+
     vec3 weights = barycentricWeights(tri, origin);
     vec2 texCoord = barycentricTexCoord(weights, createTexCoords(result.index)) + 0.5 / vec2(textureSize(atlasTex, 0));
     vec3 macroNormal = barycentricNormal(weights, createNormals(result.index));
     vec3 microNormal = ggxRandomImportantNormal(macroNormal, mat.roughness, origin);
-    vec3 incident = ray.dir;
-    bool specular = rand(origin.zx) < schlick(incident, microNormal) || mat.metal > 0.0;
+    bool specular = schlick(ray.dir, microNormal) > rand(origin.zy);
     ray.origin = origin + macroNormal * EPSILON;
+    vec3 incident = ray.dir;
     ray.dir = specular ? reflect(ray.dir, microNormal) : cosineWeightedRandomVec(macroNormal, origin);
-    vec3 texRef = texture(atlasTex, texCoord).rgb;
-    vec3 direct = directWeight * mat.emittance + texRef * getDirectEmmission(ray.origin, macroNormal, incident, mat.roughness, specular);
-    emittance[i] = direct;
+    vec3 texRef = applyGamma(texture(atlasTex, texCoord).rgb);
+    vec3 lightDir;
+    vec3 direct = getDirectEmmission(ray.origin, macroNormal, lightDir);
+    float weight = specular ? ggxWeight(microNormal, incident, lightDir, mat.roughness) : max(dot(lightDir, macroNormal), 0.0);
+    emittance[i] = direct * weight;
     reflectance[i] = texRef;
-    directWeight = specular ? (1.0 - mat.roughness) : 0.0;
     if(dot(mat.emittance, vec3(1)) > 0.0 || rand(origin.zy) > albedo(texRef)){break;}
   }
   for(int i=bounces-1; i>=0; --i){
-    color = reflectance[i]*color + emittance[i];
+    color = reflectance[i]*(emittance[i] + color);
   }
 
   fragColor = vec4((color + (tcolor * float(tick)))/(float(tick)+1.0),1.0);
