@@ -18,10 +18,8 @@ function Particles(){
   let draw_buffer_ext;
 
   let paths = [
-    "shader/simulation_1.vs",
-    "shader/simulation_1.fs",
-    "shader/simulation_2.vs",
-    "shader/simulation_2.fs",
+    "shader/simulation.vs",
+    "shader/simulation.fs",
     "shader/draw.vs",
     "shader/draw.fs",
     "texture/cloth.jpg"
@@ -216,13 +214,12 @@ function Particles(){
     gl.getExtension('OES_element_index_uint');
     gl.getExtension('OES_texture_float');
     draw_buffer_ext = gl.getExtension('WEBGL_draw_buffers');
-    programs.simulation1 = initProgram("shader/simulation_1",["velTex","posTex","accTex","imageTex","dims","invDims","tick","center"],["quad"]);
-    programs.simulation2 = initProgram("shader/simulation_2",["velTex","posTex","accTex","imageTex","dims","invDims","tick","center"],["quad"]);
+    programs.simulation = initProgram("shader/simulation",["velTex","posTex","accTex","imageTex","dims","invDims","tick","center"],["quad"]);
     programs.draw = initProgram("shader/draw",["velTex", "posTex","accTex","imageTex","invDims","perspective","rotation", "center"],["coords"]);
   }
 
-  function callSimulation1(i){
-    let program = programs.simulation1;
+  function callSimulation(i){
+    let program = programs.simulation;
     gl.disable(gl.BLEND);
     gl.useProgram(program);
     gl.uniform1f(program.uniforms.scale, scale);
@@ -251,40 +248,9 @@ function Particles(){
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
   }
 
-  function callSimulation2(i){
-    let program = programs.simulation2;
-    gl.disable(gl.BLEND);
-    gl.useProgram(program);
-    gl.uniform1f(program.uniforms.scale, scale);
-    gl.uniform1i(program.uniforms.posTex, 0);
-    gl.uniform1i(program.uniforms.velTex, 1);
-    gl.uniform1i(program.uniforms.accTex, 2);
-    gl.uniform1i(program.uniforms.imageTex, 3);
-    gl.uniform1f(program.uniforms.dims, texDims);
-    gl.uniform1i(program.uniforms.tick, i);
-    gl.uniform2f(program.uniforms.invDims, invTexDims, invTexDims);
-    gl.uniform3fv(program.uniforms.center, center);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textures.position[(i+1)%2]);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, textures.velocity[(i+1)%2]);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, textures.acceleration[(i+1)%2]);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, textures.image);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, simulationFrameBuffers[i%2]);
-    gl.viewport(0,0,texDims,texDims);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.quad);
-    gl.vertexAttribPointer(program.attributes.quad, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(program.attributes.quad);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
-  }
-
   function callSim(i){
-    for(let i = 0; i < 60; i++){
-      callSimulation1(i);
-      callSimulation2(i);
+    for(let i = 0; i < 120; i++){
+      callSimulation(i);
     }
   }
 
