@@ -249,7 +249,7 @@ function Particles(){
   }
 
   function callSim(i){
-    for(let i = 0; i < 120; i++){
+    for(let i = 0; i < 60; i++){
       callSimulation(i);
     }
   }
