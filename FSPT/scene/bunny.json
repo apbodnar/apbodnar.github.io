@@ -1,35 +1,43 @@
 {
-  "environment": [[0.3,0.3,0.3],[0.0,0.2,0.4]],
+  "environment": "environment/autumn_meadow_2k.RGBE.PNG",
+  "environmentTheta": 1.66,
+  "cameraPos": [-0.751,0.665,1.820],
+  "cameraDir": [0.304,-0.489,-0.818],
   "props": [
     {
-      "path": "mesh/bunny.obj",
-      "scale": 4,
+      "path": "asset_packs/misc/bunny_big.obj",
+      "scale": 0.35,
       "rotate": [{"angle": 0, "axis": [0,0,1]}],
       "translate": [0.1,-0.7,0],
-      "reflectance": [1,1,1],
+      "diffuse": [1,1,1],
       "emittance": [0,0,0],
-      "roughness": 0.1,
+      "metallicRoughness": [0, 0.5, 0],
+      "ior": 1.4,
       "normals": "smooth"
     },
     {
-      "path": "mesh/top.obj",
-      "scale": 0.4,
-      "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [0.525,0.75,0.2],
-      "reflectance": [1,1,1],
-      "emittance": [40,40,40],
-      "roughness": 0.1,
+      "path": "asset_packs/misc/top_mono.obj",
+      "scale": 4,
+      "rotate": [{"angle": 3.1415, "axis": [0,0,1]}],
+      "translate": [0,-0.75,0],      
+      "emittance": [0,0,0],
+      "diffuse": "asset_packs/dungeon/RootNode_baseColor.png",
+      "metallicRoughness": "asset_packs/dungeon/RootNode_metallicRoughness.png",
+      "normal": "asset_packs/dungeon/RootNode_normal.png",
       "normals": "flat"
     },
     {
-      "path": "mesh/top.obj",
+      "path": "asset_packs/misc/top_mono.obj",
       "scale": 4,
-      "rotate": [{"angle": 3.1415, "axis": [0,0,1]}],
-      "translate": [0,-0.75,0],
-      "reflectance": [1,0.1,0.1],
+      "rotate": [{"angle": -1.57, "axis": [1,0,0]}],
+      "translate": [0,0.25,-1],
       "emittance": [0,0,0],
-      "roughness": 0.1,
-      "normals": "flat"
+      "emission": "asset_packs/dungeon/Scene_-_Root_emissive.jpeg",
+      "diffuse": "asset_packs/dungeon/Scene_-_Root_baseColor.jpeg",
+      "metallicRoughness": "asset_packs/dungeon/Scene_-_Root_metallicRoughness.png",
+      "normal": "asset_packs/dungeon/Scene_-_Root_normal.png",
+      "normals": "flat",
+	  "ior": "10"
     }
   ]
 }

@@ -1,89 +1,69 @@
 /**
  * Created by adam on 6/26/17.
- * Make a texture atlas with something like a quadtree to track available space
  */
 
 export class TexturePacker {
-  constructor(atlasRes){
+  constructor(atlasRes, numTextures) {
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = atlasRes;
     this.ctx = this.canvas.getContext('2d');
-    this.root = new Quadrant(atlasRes, 0, 0);
+    this.res = atlasRes;
+    this.imageSet = [];
+    this.imageKeys = {};
+    this.ctx.scale(1, -1);
+    this.ctx.fillStyle = "rgba(0,0,0,0)";
+    this.maxRes = 0;
   }
 
-  addTexture(image){
-    let bestDim = this.resizedDims(image);
-    let quad = this.findQuad(bestDim, this.root);
-    this.resizeAndPaste(image, quad.x, quad.y, bestDim, bestDim);
-    return {
-      offset: [quad.x / this.root.dim, quad.y / this.root.dim],
-      scale: bestDim / this.root.dim
+  addTexture(image) {
+    if (this.imageKeys[image.currentSrc]) {
+      return this.imageKeys[image.currentSrc]
+    } else {
+      this.maxRes = Math.max(this.maxRes, image.height);
+      this.imageSet.push(image);
+      this.imageKeys[image.currentSrc] = this.imageSet.length - 1;
+      return this.imageKeys[image.currentSrc];
     }
   }
 
-  findQuad(size, quad){
-    if(size === quad.dim && quad.empty){
-      return quad;
+  resizeAndPaste(image) {
+    this.ctx.globalAlpha = 0.0;
+    this.ctx.clearRect(0, 0, this.res, -this.res);
+    this.ctx.globalAlpha = 1.0;
+    this.ctx.drawImage(image, 0, 0, this.res, -this.res);
+  }
+
+  setAndGetResolution() {
+    if (this.maxRes < this.res) {
+      console.log("Using texture dimensions of " + this.maxRes + "px instead of specified " + this.res + "px.")
+      this.res = this.maxRes;
     }
-    if(quad.empty){
-      quad.spawnChildren();
-      quad.empty = false;
-    }
-    let best = null;
-    for(let i=0; i<quad.children.length; i++){
-      let child = quad.children[i];
-      if(best){
-        return best;
-      }
-      if(child.dim >= size){
-        best = this.findQuad(size, child);
-        if(best){
-          child.empty = false;
+    return this.res;
+  }
+
+  getPixels() {
+    let time = new Date().getTime();
+    let pixels = new Uint8Array(this.res * this.res * 4 * this.imageSet.length);
+    for (let i = 0; i < this.imageSet.length; i++) {
+      let img = this.imageSet[i];
+      this.resizeAndPaste(img);
+      let pixBuffer = new Uint8Array(this.ctx.getImageData(0, 0, this.res, this.res).data.buffer);
+      if (img.swizzle) {
+        console.log("Swizzling texture:", img.currentSrc, " with ", img.swizzle)
+        let tmp = [0, 0, 0, 0];
+        for (let j = 0; j < pixBuffer.length; j += 4) {
+          for (let k = 0; k < 4; k++) {
+            tmp[k] = pixBuffer[j + k]
+          }
+          for (let k = 0; k < 4; k++) {
+            pixBuffer[j + k] = tmp[img.swizzle[k]]
+          }
         }
       }
-
+      let offset = i * this.res * this.res * 4;
+      pixels.set(pixBuffer, offset)
     }
-    return best;
-  }
-
-  resizedDims(image){
-    let area = image.naturalHeight * image.naturalWidth;
-    let bestDim = 1;
-    for(let i=0; Math.pow(2,i) <= Math.sqrt(area); i++){
-      bestDim = Math.pow(2,i);
-    }
-    return bestDim;
-  }
-
-  flipImage(image, size){
-    let scratch = document.createElement('canvas');
-    scratch.width = scratch.height = size;
-    let sctx = scratch.getContext('2d');
-    sctx.scale(1,-1);
-    sctx.drawImage(image, 0, 0, size, -size);
-    return scratch;
-  }
-
-  resizeAndPaste(image, offsetX, offsetY, size){
-    this.ctx.drawImage(this.flipImage(image, size), offsetX, offsetY);
-  }
-}
-
-class Quadrant {
-  constructor(size, x, y){
-    this.x = x;
-    this.y = y;
-    this.dim = size;
-    this.empty = true;
-    this.children = [];
-  }
-  spawnChildren(){
-    let half = this.dim / 2;
-    this.children = [
-      new Quadrant(half, this.x, this.y),
-      new Quadrant(half, this.x + half, this.y),
-      new Quadrant(half, this.x, this.y + half),
-      new Quadrant(half, this.x + half, this.y + half)
-    ]
+    console.log("Textures packed in ", (new Date().getTime() - time) / 1000.0, " seconds");
+    return pixels;
   }
 }

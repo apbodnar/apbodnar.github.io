@@ -1,108 +1,123 @@
 # Fragment Shader Path Tracer
 
-I made this to explore photo-realistic rendering in web browsers. Feel free to fork and open a PR. I'm a graphics hobbyist; I welcome constructive feedback.
+I made this to explore photo-realistic rendering in web browsers. 
  
 Requirements:
 * An up-to-date desktop browser that supports WebGL 2 AND ES6 module export + import
 * A top-end discrete GPU (for now)
 
+Features:
+* UE4 microfacet BRDF
+* Image based lighting
+* Area lights with light sampling (currently incorrect)
+* Bokeh depth of field with variable aperture size
+* Varible focus depth and auto-focus
+* Normal maps
+* PBR material maps. Metallicness, roughness, emissivity.
+* Post processing: exposure, saturation, denoising
+* HDRi importance sampling
+* "Camera shaders"
+
 TODOs (Not Exhaustive):
-* Remove biased specular hacks
-* Fully implement specular and diffuse BRDFs
-* Refraction with configurable IoR
-* Better BVH construction (SAH) and traversal.
-* Rewrite scene file structure.
-* Actually support asset standards. OBJ, MTL, etc...
+* Switch to a low discrepancy generator
+* Re-add refraction
+* Refactor texture packing to be far, far less wasteful of memory (current worst case could use megabytes where bytes are needed)
+* Fix area light sampling
+* Parallelize BVH construction and texture packing with web workers
+* Faster BVH construction and traversal.
 * Tiled rendering
+* Port to WebGPU compute shaders once widely available
 
 ## Demo
 
 **WARNING**: Any one of these links could crash your drivers/system. Run at your own risk. I recommend trying the links in order. If your system remains responsive, maybe try the next one.  
 I've tested with FF and Chrome on Windows and Linux with a GTX 1080 and GTX 980
 
-[Bunny](http://apbodnar.github.io/FSPT/index.html?scene=bunny&res=400)
+**Light sampling is currently broken**
 
-[Dolls](http://apbodnar.github.io/FSPT/index.html?scene=wood&res=400)
+Try messing with the mouse, scrolling, and WASD + RF keys.  Be sure to adjust the exposure and saturation.
 
-[Bunnies?](http://apbodnar.github.io/FSPT/index.html?scene=bunnies&res=400)
-
+[Bunny](http://apbodnar.github.io/FSPT/index.html?scene=bunny&mode=ne&res=1280x720)
 
 ## Experiments
 
-![alt text](images/venus2.png)
-![alt text](images/lighthouse.png)
-![alt text](images/hands.png)
-![alt text](images/monks.png)
-![alt text](images/pot.png)
-![alt text](images/dragon.png)
-![alt text](images/fairy.png)
-![alt text](images/sib.png)
-
-"Lighthouse.obj" and "Tugboat.obj" by 'Poly by Google' is licensed under CC BY 2.0
+![alt text](images/gi.png)
+![alt text](images/lego.png)
+![alt text](images/ape.png)
+![alt text](images/tokyo.png)
+![alt text](images/nier.png)
+![alt text](images/mat.png)
+![alt text](images/ajax.png)
+![alt text](images/ori.png)
 
 ## Forking
 
 Run an HTTP server of your choice from the root directory.
 
-`python -m http.server`
+**Warning** For some reason using javascript modules (`type="module"`) breaks python's SimpleHttpServer.
+I recommend using Node's `http-server`
 
 Depending on the port used, open a url like: http://localhost:8000/?scene=bunnies&res=800
 
-`scene` is the base filename of the scene json file you wish to render.
-`res` is the height and width of the canvas in pixels and defaults to window height if absent.
+`scene` is the base filename of the scene json file you wish to render.  
+`res` is the height and width of the canvas in pixels and defaults to the window dimensions if unused. Valid paterns are `res=<width>x<height>`, and `res=<square dimensions>` for a square viewport, `res=<scalar>x` to scale the internal resolution by 1 / `<scalar>`.
 
-Try messing with the mouse, scrolling, and WASD keys.
-
-A scene config file like `bunnies.json` looks like:
+A scene config file like `bunny.json` looks like:
 
 ```
 {
-  "environment": "texture/pano.jpg",
-  "atlasRes": 2048,
+  "environment": "environment/autumn_meadow_2k.RGBE.PNG",
+  "environmentTheta": 1.66,
+  "cameraPos": [-0.751,0.665,1.820],
+  "cameraDir": [0.304,-0.489,-0.818],
   "props": [
     {
-      "path": "mesh/bunny_big.obj",
-      "scale": 0.2,
+      "path": "asset_packs/misc/bunny_big.obj",
+      "scale": 0.25,
       "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [0.4,-0.2,0],
-      "reflectance": [0.9,0.9,0.9],
+      "translate": [0.1,-0.7,0],
+      "diffuse": [1,1,1],
       "emittance": [0,0,0],
-      "roughness": 0.05,
+      "metallicRoughness": [0, 0.5, 0],
+      "ior": 1.4,
       "normals": "smooth"
     },
     {
-      "path": "mesh/bunny_big.obj",
-      "scale": 0.2,
-      "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [-0.4,-0.2,0],
-      "reflectance": [0.9, 0.9, 0.9],
-      "emittance": [0,0,0],
-      "roughness": 0.001,
-      "normals": "smooth",
-      "metal": true
-    },
-    {
-      "path": "mesh/top.obj",
-      "scale": 0.4,
-      "rotate": [{"angle": 0, "axis": [0,0,1]}],
-      "translate": [1,2,1],
-      "reflectance": [0,0,0],
-      "emittance": [100,100,100],
-      "roughness": 0.9
-    },
-    {
-      "path": "mesh/top.obj",
+      "path": "asset_packs/misc/top_mono.obj",
       "scale": 4,
       "rotate": [{"angle": 3.1415, "axis": [0,0,1]}],
-      "translate": [0,-0.3,0],
-      "reflectance": [0.9,0.2,0.4],
+      "translate": [0,-0.75,0],      
       "emittance": [0,0,0],
-      "roughness": 0.01,
-      "metal": true
+      "diffuse": "asset_packs/dungeon/RootNode_baseColor.png",
+      "metallicRoughness": "asset_packs/dungeon/RootNode_metallicRoughness.png",
+      "normal": "asset_packs/dungeon/RootNode_normal.png",
+      "normals": "flat"
+    },
+    {
+      "path": "asset_packs/misc/top_mono.obj",
+      "scale": 4,
+      "rotate": [{"angle": -1.57, "axis": [1,0,0]}],
+      "translate": [0,0.25,-1],
+      "emittance": [0,0,0],
+      "emission": "asset_packs/dungeon/Scene_-_Root_emissive.jpeg",
+      "diffuse": "asset_packs/dungeon/Scene_-_Root_baseColor.jpeg",
+      "metallicRoughness": "asset_packs/dungeon/Scene_-_Root_metallicRoughness.png",
+      "normal": "asset_packs/dungeon/Scene_-_Root_normal.png",
+      "normals": "flat",
+	    "ior": "10"
     }
   ]
 }
 ```
+`environment` is the epath to the HDRi environment map  
+`environmentTheta` is the angle by which the environment is rotated about the y-axis  
+`samples` is number of samples per pixels  
+`atlasRes` is the resolution of the texture array used for all textures and materials in the scene
 
-Any prop with a non zero emittance will be treated as a light source. Any prop without a `texture` will use its reflectance as a solid color. More rotations can be applied by adding more into the array.
-If you wish to use your own OBJs, make sure you add the texture to the scene file and that it has at least one `vt` attribute.
+## Credits/Thanks
+
+Special thanks to github user [knightcrawler25](https://github.com/knightcrawler25/GLSL-PathTracer)'s excellent GLSL path tracer which was a useful reference for the UE4 BRDF and PDF
+
+[Mud Material](https://sketchfab.com/3d-models/mud-material-8f6c45d163b24b02a845dd47561a6efe) by SketchFab user Angelo under CC Attribution liscense.
+
+[Stylized Blue Lava Material ( Free )](https://sketchfab.com/3d-models/stylized-blue-lava-material-free-1503b4a9a03540789ca26907af3a07c8) by SketchFab user Plexus Design Türkiye under CC Attribution liscense.
