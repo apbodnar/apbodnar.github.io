@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>PDF compare</title>
+    <link rel="stylesheet" type="text/css" href="./application.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+</head>
+
+<body>
+    <h3 id="banner"></h3>
+    <input id='input1' type="file" name="PDF 1" accept="application/pdf" />
+    <input id='input2' type="file" name="PDF 2" accept="application/pdf" />
+    <input id='compare' type="button" value='Compare'/>
+    <!-- <input id='compare' type="button" value='Toggle'/> -->
+    <canvas id="pdf1"></canvas>
+    <canvas id="pdf2"></canvas>
+    <canvas id="diff"></canvas>
+    <textarea id="vertex" rows="8" cols="80">
+        #version 300 es
+        precision highp float;
+        in vec3 corner;
+        out vec2 uv;
+        void main(void) {
+            uv = (corner.xy * vec2(0.5, -0.5)) + vec2(0.5);
+            gl_Position = vec4(corner, 1.0);
+        }
+        </textarea><br>
+        <textarea id="fragment" rows="15" cols="80">
+        #version 300 es
+        precision highp float;
+        uniform sampler2D tex1;
+        uniform sampler2D tex2;
+        
+        in vec2 uv;
+        out vec4 fragColor;
+        
+        void main(void) {
+            vec3 tex1Color = texture(tex1, uv).rgb;
+            vec3 tex2Color = texture(tex2, uv).rgb;
+            fragColor = vec4(abs(tex1Color - tex2Color), 1);
+        }
+        </textarea><br>
+    <script type="module" src="./main.js"></script>
+</body>
+
+</html>

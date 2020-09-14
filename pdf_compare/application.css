@@ -1,0 +1,10 @@
+body { margin: 0;}
+
+canvas {
+    width: 49%;
+    display: inline-block;
+}
+
+textarea {
+    display: none;
+}
