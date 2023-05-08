@@ -1,0 +1,59 @@
+html, body, canvas {
+    height: 100%;
+    font-family: monospace;
+}
+
+body {
+    text-align: center;
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    color: white;
+}
+
+form {
+  text-align: center;
+  padding:4px;
+  position: fixed;
+  top: 24px;
+  left: 0;
+  text-align: left;
+}
+
+button {
+  display: block;
+}
+
+h3 {
+    padding: 0;
+    margin: 0;
+    top: 4px;
+    position: fixed;
+}
+
+label {
+    margin-top: 2px;
+}
+
+canvas {
+    border: none;
+}
+
+canvas.debug {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+input {
+    border-width: 0 0 1px 0;
+    text-align: right;
+    width: 128px;
+    color: white;
+    background-color: black;
+    margin-bottom: 8px;
+}

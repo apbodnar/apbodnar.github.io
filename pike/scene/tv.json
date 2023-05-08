@@ -1,0 +1,87 @@
+{
+  "environment": "environment/christmas_photo_studio_01_2k.RGBE.PNG",
+  "environmentTheta": 0.0,
+  "cameraPos": [
+    -0.751,
+    0.665,
+    1.820
+  ],
+  "cameraDir": [
+    0.304,
+    -0.489,
+    -0.818
+  ],
+  "atlasRes": 2048,
+  "props": [
+    {
+      "uri": "asset_packs/tv/scene.gltf",
+      "transforms": {
+        "scale": 0.005,
+        "rotate": [
+          {
+            "angle": -0.60,
+            "axis": [
+              0,
+              1,
+              0
+            ]
+          }
+        ],
+        "translate": [
+          -0.2,
+          -0.11,
+          -0.4
+        ]
+      },
+      "diffuse": [
+        1,
+        0.1,
+        0.1
+      ],
+      "metallicRoughness": [
+        0,
+        0.01,
+        0
+      ]
+    },
+    {
+      "uri": "asset_packs/table/scene.gltf",
+      "transforms": {
+        "scale": 0.3,
+        "rotate": [
+          {
+            "angle": 0,
+            "axis": [
+              1,
+              0,
+              0
+            ]
+          }
+        ],
+        "translate": [
+          0,
+          -4.27,
+          0
+        ]
+      },
+      "diffuse": [
+        1,
+        0.1,
+        0.1
+      ],
+      "metallicRoughness": [
+        0,
+        0.01,
+        0
+      ]
+    },
+    {
+      "uri": "asset_packs/kokeshi/scene.gltf",
+      "transforms": {
+        "scale": 0.03,
+        "rotate": [{"angle": 0, "axis": [-1,0,0]}],
+        "translate": [0.5,-0.95,-6.5]
+      }
+    }
+  ]
+}
