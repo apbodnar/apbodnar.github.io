@@ -7,12 +7,17 @@ export class Raycaster {
   constructor(bvh) {
     this.bvh = bvh;
     this.lastMeshDebug = null;
+    this.normalizer = this.#makeNormalizer(bvh.root.bounds);
   }
 
   rayTriangleIntersect(ray, tri) {
     let epsilon = 0.000000000001;
-    let e1 = Vec3.sub(tri.verts[1], tri.verts[0]);
-    let e2 = Vec3.sub(tri.verts[2], tri.verts[0]);
+    const v0 = this.normalizer(tri.verts[0]);
+    const v1 = this.normalizer(tri.verts[1]);
+    const v2 = this.normalizer(tri.verts[2]);
+
+    let e1 = Vec3.sub(v1, v0);
+    let e2 = Vec3.sub(v2, v0);
     let p = Vec3.cross(ray.dir, e2);
     let det = Vec3.dot(e1, p);
 
@@ -20,7 +25,7 @@ export class Raycaster {
       return MAX_T
     }
     let invDet = 1.0 / det;
-    let t = Vec3.sub(ray.origin, tri.verts[0]);
+    let t = Vec3.sub(ray.origin, v0);
     let u = Vec3.dot(t, p) * invDet;
     if (u < 0 || u > 1) {
       return MAX_T
@@ -37,9 +42,20 @@ export class Raycaster {
     return MAX_T;
   }
 
+  #makeNormalizer(bounds) {
+    const min = bounds.min;
+    const span = Vec3.sub(bounds.max, bounds.min);
+    const longest = Math.max(span[0], span[1], span[2]);
+
+    return (vec) => {
+      const toCenter = Vec3.add(min, Vec3.scale(span, 0.5));
+      return Vec3.scale(Vec3.sub(vec, toCenter), 2 / longest); 
+    }
+  }
+
   processLeaf(ray, root) {
     let res = MAX_T;
-    let tris = root.getTriangles();
+    let tris = root.leafTriangles;
     for (let i = 0; i < tris.length; i++) {
       let tmp = this.rayTriangleIntersect(ray, tris[i])
       if (tmp < res) {
@@ -51,13 +67,16 @@ export class Raycaster {
   }
 
   rayBoxIntersect(ray, bbox) {
+    const min = this.normalizer(bbox.min);
+    const max = this.normalizer(bbox.max);
+
     let invDir = Vec3.inverse(ray.dir),
-      tx1 = (bbox.min[0] - ray.origin[0]) * invDir[0],
-      tx2 = (bbox.max[0] - ray.origin[0]) * invDir[0],
-      ty1 = (bbox.min[1] - ray.origin[1]) * invDir[1],
-      ty2 = (bbox.max[1] - ray.origin[1]) * invDir[1],
-      tz1 = (bbox.min[2] - ray.origin[2]) * invDir[2],
-      tz2 = (bbox.max[2] - ray.origin[2]) * invDir[2];
+      tx1 = (min[0] - ray.origin[0]) * invDir[0],
+      tx2 = (max[0] - ray.origin[0]) * invDir[0],
+      ty1 = (min[1] - ray.origin[1]) * invDir[1],
+      ty2 = (max[1] - ray.origin[1]) * invDir[1],
+      tz1 = (min[2] - ray.origin[2]) * invDir[2],
+      tz2 = (max[2] - ray.origin[2]) * invDir[2];
 
     let tmin = Math.min(tx1, tx2);
     let tmax = Math.max(tx1, tx2);
